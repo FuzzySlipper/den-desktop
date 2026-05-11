@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="external/den-bridge/src/Den.Bridge/Den.Bridge.csproj" />
+    <Project Path="src/DenMcp.Desktop.Sidecar/DenMcp.Desktop.Sidecar.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="external/den-bridge/tests/Den.Bridge.Tests/Den.Bridge.Tests.csproj" />
+    <Project Path="tests/DenMcp.Desktop.Sidecar.Tests/DenMcp.Desktop.Sidecar.Tests.csproj" />
+  </Folder>
+</Solution>
