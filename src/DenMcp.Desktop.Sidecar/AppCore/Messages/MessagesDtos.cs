@@ -46,6 +46,9 @@ public sealed record MessagesSnapshot
     [JsonPropertyName("messages")]
     public IReadOnlyList<MessagesMessageRow> Messages { get; init; } = [];
 
+    [JsonPropertyName("activity_events")]
+    public IReadOnlyList<MessagesActivityEventRow> ActivityEvents { get; init; } = [];
+
     [JsonPropertyName("thread_root")]
     public MessagesMessageRow? ThreadRoot { get; init; }
 
@@ -93,6 +96,63 @@ public sealed record MessagesMessageRow
 
     [JsonPropertyName("content_summary")]
     public string ContentSummary { get; init; } = string.Empty;
+}
+
+public sealed record MessagesActivityEventRow
+{
+    [JsonPropertyName("id")]
+    public long Id { get; init; }
+
+    [JsonPropertyName("channel_id")]
+    public long ChannelId { get; init; }
+
+    [JsonPropertyName("agent_identity")]
+    public string AgentIdentity { get; init; } = string.Empty;
+
+    [JsonPropertyName("delivery_request_id")]
+    public string? DeliveryRequestId { get; init; }
+
+    [JsonPropertyName("hermes_session_key")]
+    public string? HermesSessionKey { get; init; }
+
+    [JsonPropertyName("task_id")]
+    public long? TaskId { get; init; }
+
+    [JsonPropertyName("thread_id")]
+    public long? ThreadId { get; init; }
+
+    [JsonPropertyName("anchor_message_id")]
+    public long? AnchorMessageId { get; init; }
+
+    [JsonPropertyName("event_type")]
+    public string EventType { get; init; } = string.Empty;
+
+    [JsonPropertyName("status")]
+    public string Status { get; init; } = string.Empty;
+
+    [JsonPropertyName("sequence")]
+    public long Sequence { get; init; }
+
+    [JsonPropertyName("update_version")]
+    public long UpdateVersion { get; init; }
+
+    [JsonPropertyName("title")]
+    public string Title { get; init; } = string.Empty;
+
+    [JsonPropertyName("summary")]
+    public string Summary { get; init; } = string.Empty;
+
+    [JsonPropertyName("preview_json")]
+    public string? PreviewJson { get; init; }
+
+    [JsonPropertyName("metadata_json")]
+    public string? MetadataJson { get; init; }
+
+    [JsonPropertyName("created_at")]
+    public string? CreatedAt { get; init; }
+
+    [JsonPropertyName("updated_at")]
+    public string? UpdatedAt { get; init; }
 }
 
 public sealed record MessagesFreshness

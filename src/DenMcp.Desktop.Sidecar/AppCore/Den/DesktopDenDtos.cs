@@ -69,6 +69,84 @@ public sealed record DenSpace
     public string? UpdatedAt { get; init; }
 }
 
+public sealed record DenChannelSummary
+{
+    [JsonPropertyName("id")]
+    public long Id { get; init; }
+
+    [JsonPropertyName("projectId")]
+    public string? ProjectId { get; init; }
+
+    [JsonPropertyName("slug")]
+    public string? Slug { get; init; }
+
+    [JsonPropertyName("kind")]
+    public string? Kind { get; init; }
+}
+
+public sealed record DenChannelActivityEvent
+{
+    [JsonPropertyName("id")]
+    public long Id { get; init; }
+
+    [JsonPropertyName("channelId")]
+    public long ChannelId { get; init; }
+
+    [JsonPropertyName("projectId")]
+    public string? ProjectId { get; init; }
+
+    [JsonPropertyName("agentIdentity")]
+    public string AgentIdentity { get; init; } = string.Empty;
+
+    [JsonPropertyName("deliveryRequestId")]
+    public string? DeliveryRequestId { get; init; }
+
+    [JsonPropertyName("hermesSessionKey")]
+    public string? HermesSessionKey { get; init; }
+
+    [JsonPropertyName("taskId")]
+    public long? TaskId { get; init; }
+
+    [JsonPropertyName("threadId")]
+    public long? ThreadId { get; init; }
+
+    [JsonPropertyName("anchorMessageId")]
+    public long? AnchorMessageId { get; init; }
+
+    [JsonPropertyName("eventType")]
+    public string EventType { get; init; } = string.Empty;
+
+    [JsonPropertyName("status")]
+    public string Status { get; init; } = string.Empty;
+
+    [JsonPropertyName("sequence")]
+    public long Sequence { get; init; }
+
+    [JsonPropertyName("updateVersion")]
+    public long UpdateVersion { get; init; }
+
+    [JsonPropertyName("title")]
+    public string? Title { get; init; }
+
+    [JsonPropertyName("summary")]
+    public string? Summary { get; init; }
+
+    [JsonPropertyName("previewJson")]
+    public string? PreviewJson { get; init; }
+
+    [JsonPropertyName("metadataJson")]
+    public string? MetadataJson { get; init; }
+
+    [JsonPropertyName("dedupeKey")]
+    public string? DedupeKey { get; init; }
+
+    [JsonPropertyName("createdAt")]
+    public string? CreatedAt { get; init; }
+
+    [JsonPropertyName("updatedAt")]
+    public string? UpdatedAt { get; init; }
+}
+
 public sealed record DenAgentWorkspace
 {
     [JsonPropertyName("id")]

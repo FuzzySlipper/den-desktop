@@ -77,6 +77,23 @@ public sealed class MessagesProjectionService
             threadRoot = rootMessage is not null ? ToRow(rootMessage, unreadIds) : null;
         }
 
+        var channels = await TryAsync(
+            () => _den.ListChannelsAsync(baseUrl, request.ProjectId, cancellationToken),
+            errors,
+            "Unable to load Channels activity lanes",
+            Array.Empty<DenChannelSummary>()).ConfigureAwait(false);
+        var channel = channels
+            .OrderByDescending(candidate => string.Equals(candidate.Kind, "project_default", StringComparison.OrdinalIgnoreCase))
+            .ThenBy(candidate => candidate.Id)
+            .FirstOrDefault();
+        var activityEvents = channel is null
+            ? Array.Empty<DenChannelActivityEvent>()
+            : await TryAsync(
+                () => _den.ListChannelActivityEventsAsync(baseUrl, channel.Id, request.TaskId, 50, cancellationToken),
+                errors,
+                "Unable to load Channels activity events",
+                Array.Empty<DenChannelActivityEvent>()).ConfigureAwait(false);
+
         var rows = messages.Select(m => ToRow(m, unreadIds)).ToList();
 
         var unreadCount = unreadIds is not null
@@ -91,6 +108,7 @@ public sealed class MessagesProjectionService
             ThreadId = request.ThreadId,
             GeneratedAt = generatedAt,
             Messages = rows,
+            ActivityEvents = activityEvents.Select(ToActivityRow).ToList(),
             ThreadRoot = threadRoot,
             UnreadCount = unreadCount,
             TotalCount = rows.Count,
@@ -123,6 +141,31 @@ public sealed class MessagesProjectionService
             CreatedAt = message.CreatedAt,
             IsUnread = isUnread,
             ContentSummary = contentSummary,
+        };
+    }
+
+    private static MessagesActivityEventRow ToActivityRow(DenChannelActivityEvent activity)
+    {
+        return new MessagesActivityEventRow
+        {
+            Id = activity.Id,
+            ChannelId = activity.ChannelId,
+            AgentIdentity = activity.AgentIdentity,
+            DeliveryRequestId = activity.DeliveryRequestId,
+            HermesSessionKey = activity.HermesSessionKey,
+            TaskId = activity.TaskId,
+            ThreadId = activity.ThreadId,
+            AnchorMessageId = activity.AnchorMessageId,
+            EventType = activity.EventType,
+            Status = activity.Status,
+            Sequence = activity.Sequence,
+            UpdateVersion = activity.UpdateVersion,
+            Title = BoundSummary(activity.Title, 120),
+            Summary = BoundSummary(activity.Summary ?? activity.PreviewJson, MaxSummaryLength),
+            PreviewJson = activity.PreviewJson,
+            MetadataJson = activity.MetadataJson,
+            CreatedAt = activity.CreatedAt,
+            UpdatedAt = activity.UpdatedAt,
         };
     }
 

@@ -371,6 +371,73 @@ public sealed class DenHttpClient
         }
     }
 
+    public async Task<IReadOnlyList<DenChannelSummary>> ListChannelsAsync(
+        string baseUrl,
+        string projectId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(projectId);
+
+        var response = await SendAsync(
+            () => new HttpRequestMessage(HttpMethod.Get, JoinUrl(baseUrl, "/api/channels")),
+            "Unable to fetch Den Channels list",
+            cancellationToken).ConfigureAwait(false);
+
+        using (response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await ReadBodyAsync(response, cancellationToken).ConfigureAwait(false);
+                throw new DenHttpClientException($"Den Channels list returned HTTP {(int)response.StatusCode}: {body}");
+            }
+
+            var channels = await ReadJsonAsync<List<DenChannelSummary>>(
+                response,
+                "Unable to parse Den Channels list",
+                cancellationToken).ConfigureAwait(false);
+            return channels
+                .Where(channel => string.Equals(channel.ProjectId, projectId, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+    }
+
+    public async Task<IReadOnlyList<DenChannelActivityEvent>> ListChannelActivityEventsAsync(
+        string baseUrl,
+        long channelId,
+        long? taskId = null,
+        int limit = 50,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new List<QueryParameter>
+        {
+            new("limit", Math.Clamp(limit, 1, 100).ToString(System.Globalization.CultureInfo.InvariantCulture)),
+        };
+        if (taskId is { } id)
+        {
+            query.Add(new QueryParameter("taskId", id.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        }
+
+        var path = $"/api/channels/{channelId}/activity-events";
+        var response = await SendAsync(
+            () => new HttpRequestMessage(HttpMethod.Get, BuildUrl(baseUrl, path, query)),
+            "Unable to fetch Den Channels activity events",
+            cancellationToken).ConfigureAwait(false);
+
+        using (response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await ReadBodyAsync(response, cancellationToken).ConfigureAwait(false);
+                throw new DenHttpClientException($"Den Channels activity request returned HTTP {(int)response.StatusCode}: {body}");
+            }
+
+            return await ReadJsonAsync<List<DenChannelActivityEvent>>(
+                response,
+                "Unable to parse Den Channels activity events",
+                cancellationToken).ConfigureAwait(false);
+        }
+    }
+
     public async Task<DenMessage?> GetMessageAsync(
         string baseUrl,
         string projectId,

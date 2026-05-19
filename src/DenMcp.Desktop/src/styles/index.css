@@ -2457,6 +2457,23 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid color-mix(i
 .messages-header-actions button { padding: 0.45rem 0.65rem !important; font-size: var(--fs-xs); }
 .messages-error { color: var(--st-err); font-size: var(--fs-xs); }
 .messages-list { display: flex; flex-direction: column; gap: var(--sp-2); }
+.activity-timeline {
+  display: flex; flex-direction: column; gap: var(--sp-1_5);
+  padding: var(--sp-2); background: color-mix(in oklab, var(--bg-input) 74%, var(--bg-panel));
+  border: var(--bw) solid var(--bd-subtle); border-radius: var(--r-md);
+  border-left: 3px solid var(--st-info);
+}
+.activity-timeline-header { display: flex; justify-content: space-between; gap: var(--sp-2); font-weight: 700; color: var(--fg-secondary); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.08em; }
+.activity-timeline-subtitle { color: var(--fg-muted); font-weight: 500; text-transform: none; letter-spacing: 0; }
+.activity-event { padding: var(--sp-1_5) var(--sp-2); border-radius: var(--r-sm); background: color-mix(in oklab, var(--bg-panel) 80%, transparent); border: var(--bw) solid transparent; }
+.activity-event-running { border-color: color-mix(in oklab, var(--st-running) 30%, transparent); }
+.activity-event-ok { border-color: color-mix(in oklab, var(--st-ok) 25%, transparent); }
+.activity-event-err { border-color: color-mix(in oklab, var(--st-err) 35%, transparent); }
+.activity-event-topline { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-2xs); color: var(--fg-muted); }
+.activity-event-agent { font-family: var(--font-mono); color: var(--fg-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.activity-event-time { margin-left: auto; white-space: nowrap; }
+.activity-event-title { margin-top: var(--sp-1); font-weight: 650; color: var(--fg-primary); font-size: var(--fs-sm); }
+.activity-event-summary { margin-top: var(--sp-0_5); color: var(--fg-muted); font-size: var(--fs-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .messages-card {
   display: flex; flex-direction: column; gap: var(--sp-1);
   padding: var(--sp-2) var(--sp-3); background: var(--bg-input);

@@ -12,6 +12,7 @@ import {
   type MessageFilterType,
   type MessagesView,
   type MessageRowView,
+  type ActivityEventView,
 } from '../messagesView.ts';
 
 interface Props {
@@ -68,7 +69,7 @@ export function MessagesPane({ projectId, taskId }: Props) {
     return {
       ...raw,
       messages: filtered,
-      isEmpty: filtered.length === 0,
+      isEmpty: filtered.length === 0 && raw.activityEvents.length === 0,
     };
   }, [snapshot, messageFilter]);
 
@@ -104,6 +105,9 @@ export function MessagesPane({ projectId, taskId }: Props) {
       ) : null}
       {snapshot && !view.isEmpty ? (
         <div className="messages-list">
+          {view.activityEvents.length > 0 && (
+            <ActivityTimeline events={view.activityEvents} />
+          )}
           {view.messages.map((msg) => (
             <MessageCard
               key={msg.id}
@@ -197,6 +201,7 @@ function MessagesHeader({
         <div className="messages-header-counts">
           <span className="messages-count-item"><strong>{h.totalCount}</strong> messages</span>
           {h.unreadCount > 0 && <span className="messages-count-item accent"><strong>{h.unreadCount}</strong> unread</span>}
+          {view.activityEvents.length > 0 && <span className="messages-count-item"><strong>{view.activityEvents.length}</strong> activity</span>}
         </div>
       </div>
       <div className="messages-header-actions">
@@ -204,6 +209,28 @@ function MessagesHeader({
         {error ? <span className="messages-error">{error}</span> : null}
       </div>
     </div>
+  );
+}
+
+function ActivityTimeline({ events }: { events: ActivityEventView[] }) {
+  return (
+    <aside className="activity-timeline" aria-label="Agent activity breadcrumbs">
+      <div className="activity-timeline-header">
+        <span>Activity breadcrumbs</span>
+        <span className="activity-timeline-subtitle">non-pulsing tool calls</span>
+      </div>
+      {events.map((event) => (
+        <div key={event.id} className={`activity-event activity-event-${event.statusTone}`}>
+          <div className="activity-event-topline">
+            <span className={`chip sender-tone-${event.statusTone}`}>{event.statusLabel}</span>
+            <span className="activity-event-agent">{event.agentIdentity}</span>
+            <span className="activity-event-time">{event.relativeTime}</span>
+          </div>
+          <div className="activity-event-title">{event.title}</div>
+          {event.summary ? <div className="activity-event-summary">{event.summary}</div> : null}
+        </div>
+      ))}
+    </aside>
   );
 }
 

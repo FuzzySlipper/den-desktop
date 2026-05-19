@@ -157,6 +157,43 @@ public class MessagesProjectionTests
     }
 
     [Fact]
+    public async Task Projection_ActivityEvents_LoadsNonMessageBreadcrumbsAndFiltersByTask()
+    {
+        var handler = new RecordingHandler(
+            JsonResponse("[]"),
+            JsonResponse("""
+                [
+                  {"id":5,"projectId":"den-mcp","slug":"project-default","kind":"project_default"}
+                ]
+                """),
+            JsonResponse("""
+                [
+                  {"id":3,"channelId":5,"projectId":"den-mcp","agentIdentity":"den-channels-runner","deliveryRequestId":"delivery-1","hermesSessionKey":"session-1","taskId":1092,"threadId":null,"anchorMessageId":null,"eventType":"tool_call_completed","status":"completed","sequence":2,"updateVersion":1,"title":"tool terminal","summary":"finished terminal command","previewJson":"{\"command\":\"dotnet test\"}","metadataJson":"{\"count\":3}","dedupeKey":"tool:terminal","createdAt":"2026-04-30T02:59:00","updatedAt":"2026-04-30T02:59:30"}
+                ]
+                """));
+
+        var service = CreateService(handler);
+
+        var snapshot = await service.GetSnapshotAsync(new MessagesSnapshotRequest
+        {
+            ProjectId = "den-mcp",
+            TaskId = 1092,
+        }, CancellationToken.None);
+
+        var activity = Assert.Single(snapshot.ActivityEvents);
+        Assert.Equal(3, activity.Id);
+        Assert.Equal(5, activity.ChannelId);
+        Assert.Equal("den-channels-runner", activity.AgentIdentity);
+        Assert.Equal("tool_call_completed", activity.EventType);
+        Assert.Equal("completed", activity.Status);
+        Assert.Equal("tool terminal", activity.Title);
+        Assert.Equal("finished terminal command", activity.Summary);
+        Assert.Equal("{\"count\":3}", activity.MetadataJson);
+        Assert.Contains(handler.Requests, r => r.Uri == "http://den.test/api/channels");
+        Assert.Contains(handler.Requests, r => r.Uri == "http://den.test/api/channels/5/activity-events?limit=50&taskId=1092");
+    }
+
+    [Fact]
     public async Task Projection_UnreadFor_MarksUnreadMessages()
     {
         // Two responses: all messages, then unread-filtered messages
@@ -264,7 +301,10 @@ public class MessagesProjectionTests
         {
             var body = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
             Requests.Add(new RecordedRequest(request.Method.Method, request.RequestUri?.AbsoluteUri ?? string.Empty, body));
-            Assert.NotEmpty(_responses);
+            if (_responses.Count == 0)
+            {
+                return JsonResponse("[]");
+            }
             return _responses.Dequeue();
         }
     }

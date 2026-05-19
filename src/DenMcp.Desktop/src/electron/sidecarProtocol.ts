@@ -208,6 +208,7 @@ export interface MessagesSnapshot {
   thread_id?: number | null;
   generated_at: string;
   messages: MessagesMessageRow[];
+  activity_events?: MessagesActivityEventRow[];
   thread_root: MessagesMessageRow | null;
   unread_count: number;
   total_count: number;
@@ -226,6 +227,27 @@ export interface MessagesMessageRow {
   created_at: string | null;
   is_unread: boolean;
   content_summary: string;
+}
+
+export interface MessagesActivityEventRow {
+  id: number;
+  channel_id: number;
+  agent_identity: string;
+  delivery_request_id?: string | null;
+  hermes_session_key?: string | null;
+  task_id?: number | null;
+  thread_id?: number | null;
+  anchor_message_id?: number | null;
+  event_type: string;
+  status: string;
+  sequence: number;
+  update_version: number;
+  title: string;
+  summary: string;
+  preview_json?: string | null;
+  metadata_json?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export interface MessagesFreshness {

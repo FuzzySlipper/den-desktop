@@ -8,6 +8,7 @@
 import type {
   MessagesSnapshot,
   MessagesMessageRow,
+  MessagesActivityEventRow,
   MessagesFreshness,
 } from './electron/sidecarProtocol.ts';
 
@@ -34,6 +35,19 @@ export interface MessageRowView {
   hasThread: boolean;
 }
 
+export interface ActivityEventView {
+  id: number;
+  agentIdentity: string;
+  title: string;
+  summary: string;
+  preview: string;
+  status: string;
+  statusLabel: string;
+  statusTone: MessageSenderTone;
+  count: number;
+  relativeTime: string;
+}
+
 export interface MessagesHeaderView {
   projectId: string;
   taskId: number | null;
@@ -55,6 +69,7 @@ export interface MessagesFreshnessView {
 export interface MessagesView {
   header: MessagesHeaderView;
   messages: MessageRowView[];
+  activityEvents: ActivityEventView[];
   threadRoot: MessageRowView | null;
   freshness: MessagesFreshnessView;
   isEmpty: boolean;
@@ -165,6 +180,7 @@ export function buildMessagesView(
   }
 
   const messages = snapshot.messages.map((msg) => buildMessageRowView(msg, nowMs));
+  const activityEvents = (snapshot.activity_events ?? []).map((event) => buildActivityEventView(event, nowMs));
   const threadRoot = snapshot.thread_root ? buildMessageRowView(snapshot.thread_root, nowMs) : null;
   const header = buildHeader(snapshot, nowMs);
   const freshness = buildFreshness(snapshot.freshness, snapshot.generated_at, nowMs);
@@ -172,9 +188,30 @@ export function buildMessagesView(
   return {
     header,
     messages,
+    activityEvents,
     threadRoot,
     freshness,
-    isEmpty: messages.length === 0,
+    isEmpty: messages.length === 0 && activityEvents.length === 0,
+  };
+}
+
+export function buildActivityEventView(event: MessagesActivityEventRow, nowMs = Date.now()): ActivityEventView {
+  const metadata = parseJsonObject(event.metadata_json);
+  const count = typeof metadata.count === 'number' && Number.isFinite(metadata.count) ? metadata.count : 1;
+  const title = event.title || event.event_type.replaceAll('_', ' ');
+  const summary = event.summary || event.preview_json || '';
+  const suffix = count > 1 && !summary.includes(`×${count}`) ? ` ×${count}` : '';
+  return {
+    id: event.id,
+    agentIdentity: event.agent_identity,
+    title,
+    summary: truncateContent(`${summary}${suffix}`, 260),
+    preview: truncateContent(event.preview_json || summary, 180),
+    status: event.status,
+    statusLabel: activityStatusLabel(event.status),
+    statusTone: activityStatusTone(event.status),
+    count,
+    relativeTime: relativeTimeLabel(event.updated_at ?? event.created_at, nowMs),
   };
 }
 
@@ -229,6 +266,7 @@ function emptyMessagesView(): MessagesView {
       filterDescription: '',
     },
     messages: [],
+    activityEvents: [],
     threadRoot: null,
     freshness: { isPartial: false, isStale: false, warnings: [], errors: [], source: 'none' },
     isEmpty: true,
@@ -252,6 +290,28 @@ function buildMessageRowView(msg: MessagesMessageRow, nowMs: number): MessageRow
     senderTone: senderTone(msg),
     hasThread: msg.thread_id != null,
   };
+}
+
+function parseJsonObject(value: string | null | undefined): Record<string, unknown> {
+  if (!value) return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
+  } catch {
+    return {};
+  }
+}
+
+function activityStatusLabel(status: string): string {
+  if (status === 'completed') return 'done';
+  if (status === 'failed') return 'failed';
+  return 'working';
+}
+
+function activityStatusTone(status: string): MessageSenderTone {
+  if (status === 'completed') return 'ok';
+  if (status === 'failed') return 'err';
+  return 'running';
 }
 
 function buildHeader(snapshot: MessagesSnapshot, nowMs: number): MessagesHeaderView {
