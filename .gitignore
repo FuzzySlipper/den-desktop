@@ -20,6 +20,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+## Test temp directories
+.tmp-test/
+
 ## Local config / OS / editors
 .env
 .DS_Store
