@@ -16,7 +16,7 @@ import type {
 
 export type MessageSenderTone = 'ok' | 'warn' | 'err' | 'accent' | 'idle' | 'info' | 'running';
 
-export type MessageFilterType = 'all' | 'messages' | 'stream' | 'thoughts' | 'user' | 'notifications';
+export type MessageFilterType = 'all' | 'messages' | 'stream' | 'user' | 'notifications';
 
 export interface MessageRowView {
   id: number;
@@ -128,12 +128,11 @@ const PACKET_SENDER_TONES: Record<string, MessageSenderTone> = {
  * - 'all' — no filtering
  * - 'messages' — regular messages (no packet metadata_type)
  * - 'stream' — workflow/packet messages (metadata_type in PACKET_TYPES)
- * - 'thoughts' — best-effort thought/observation classification
  * - 'user' — messages where sender === 'user' (case-insensitive)
  * - 'notifications' — messages with intent === 'notification'
  *
- * Note: 'stream', 'thoughts' filters need backend support to include
- * agent stream entries and thought data. For now they filter from
+ * Note: 'stream' filter needs backend support to include
+ * agent stream entries. For now it filters from
  * the available task-thread/project messages only.
  */
 export function filterMessagesByType(
@@ -149,8 +148,6 @@ export function filterMessagesByType(
         return !msg.metadataType || !PACKET_TYPES.has(msg.metadataType);
       case 'stream':
         return !!msg.metadataType && PACKET_TYPES.has(msg.metadataType);
-      case 'thoughts':
-        return isThoughtEntry(msg);
       case 'user':
         return msg.sender.toLowerCase() === 'user';
       case 'notifications':
@@ -159,16 +156,6 @@ export function filterMessagesByType(
         return true;
     }
   });
-}
-
-function isThoughtEntry(msg: MessageRowView): boolean {
-  const sender = msg.sender.toLowerCase();
-  const isCoderOrReviewer = sender.includes('coder') || sender.includes('reviewer');
-  const hasThoughtIndicators =
-    msg.contentFull.toLowerCase().includes('thinking') ||
-    msg.contentFull.toLowerCase().includes('observation') ||
-    msg.contentFull.toLowerCase().includes('analysis');
-  return isCoderOrReviewer && hasThoughtIndicators;
 }
 
 export function buildMessagesView(
@@ -232,6 +219,17 @@ export function metadataTypeLabel(metadataType: string | null): string {
   return METADATA_TYPE_LABELS[metadataType] ?? metadataType.replaceAll('_', ' ');
 }
 
+/**
+ * Strip HTML tags from a string, keeping inner text.
+ * Handles common tags like <details>, <summary>, <div>, <span>, etc.
+ * Also removes excess whitespace left after tag removal.
+ */
+export function stripHtmlTags(content: string): string {
+  if (!content) return content;
+  // Remove HTML tags (including self-closing and those with attributes)
+  return content.replace(/<[^>]*>/g, '').trim();
+}
+
 export function truncateContent(content: string, maxLen = 200): string {
   if (!content) return '';
   const flat = content.replace(/\n+/g, ' ').trim();
@@ -274,11 +272,13 @@ function emptyMessagesView(): MessagesView {
 }
 
 function buildMessageRowView(msg: MessagesMessageRow, nowMs: number): MessageRowView {
+  const cleanContent = stripHtmlTags(msg.content);
+  const cleanSummary = msg.content_summary ? stripHtmlTags(msg.content_summary) : null;
   return {
     id: msg.id,
     sender: msg.sender,
-    contentPreview: truncateContent(msg.content_summary || msg.content),
-    contentFull: msg.content,
+    contentPreview: truncateContent(cleanSummary || cleanContent),
+    contentFull: cleanContent,
     intent: msg.intent,
     metadataType: msg.metadata_type,
     metadataTypeLabel: metadataTypeLabel(msg.metadata_type),

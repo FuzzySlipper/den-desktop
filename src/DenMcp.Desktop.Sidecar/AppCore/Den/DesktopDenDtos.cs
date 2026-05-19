@@ -84,6 +84,57 @@ public sealed record DenChannelSummary
     public string? Kind { get; init; }
 }
 
+public sealed record DenChannelMessage
+{
+    [JsonPropertyName("id")]
+    public long Id { get; init; }
+
+    [JsonPropertyName("channelId")]
+    public long ChannelId { get; init; }
+
+    [JsonPropertyName("senderIdentity")]
+    public string SenderIdentity { get; init; } = string.Empty;
+
+    [JsonPropertyName("senderType")]
+    public string SenderType { get; init; } = string.Empty;
+
+    [JsonPropertyName("body")]
+    public string Body { get; init; } = string.Empty;
+
+    [JsonPropertyName("createdAt")]
+    public string? CreatedAt { get; init; }
+}
+
+public sealed record DenSendChannelMessageRequest
+{
+    [JsonPropertyName("body")]
+    public string Body { get; init; } = string.Empty;
+
+    [JsonPropertyName("senderIdentity")]
+    public string SenderIdentity { get; init; } = string.Empty;
+
+    [JsonPropertyName("senderType")]
+    public string SenderType { get; init; } = "user";
+}
+
+public sealed record DenEnsureDefaultChannelResult
+{
+    [JsonPropertyName("id")]
+    public long Id { get; init; }
+
+    [JsonPropertyName("slug")]
+    public string Slug { get; init; } = string.Empty;
+
+    [JsonPropertyName("projectId")]
+    public string ProjectId { get; init; } = string.Empty;
+
+    [JsonPropertyName("kind")]
+    public string Kind { get; init; } = string.Empty;
+
+    [JsonPropertyName("wasCreated")]
+    public bool WasCreated { get; init; }
+}
+
 public sealed record DenChannelActivityEvent
 {
     [JsonPropertyName("id")]

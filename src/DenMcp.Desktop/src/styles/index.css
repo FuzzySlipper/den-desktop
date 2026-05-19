@@ -405,7 +405,7 @@ kbd { border: var(--bw) solid var(--bd-default); border-bottom-color: var(--bd-s
 .console-header { display: flex; align-items: center; gap: var(--sp-3); padding: 0 var(--sp-3); border-bottom: var(--bw) solid var(--bd-subtle); }
 .console-prompt { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; flex: 1; }
 .console-glyph { color: var(--accent); font-family: var(--font-mono); font-weight: 800; }
-.console-mode-stub { color: var(--accent); font-family: var(--font-mono); font-size: var(--fs-2xs); padding: 1px 7px; border: var(--bw) solid color-mix(in oklab, var(--accent) 35%, transparent); border-radius: 999px; background: var(--accent-bg); white-space: nowrap; }
+.console-mode-indicator { color: var(--accent); font-family: var(--font-mono); font-size: var(--fs-2xs); padding: 1px 7px; border: var(--bw) solid color-mix(in oklab, var(--accent) 35%, transparent); border-radius: 999px; background: var(--accent-bg); white-space: nowrap; }
 .console-target { color: var(--fg-secondary); font-family: var(--font-mono); font-size: var(--fs-2xs); white-space: nowrap; }
 .console-prompt input { min-width: 0; flex: 1; height: 22px; border: 0; outline: 0; background: transparent; color: var(--fg-primary); padding: 0; }
 .console-controls { display: flex; gap: var(--sp-1); }
@@ -539,6 +539,26 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid color-mix(i
 .file-button { width: 100%; display: flex; gap: var(--sp-2); align-items: center; justify-content: flex-start; text-align: left; background: transparent; color: var(--fg-secondary); border: var(--bw) solid transparent; border-radius: var(--r-md); padding: var(--sp-1) var(--sp-2); }
 .file-button:hover, .file-button.active { background: var(--accent-bg); border-color: color-mix(in oklab, var(--accent) 35%, transparent); }
 .file-button code { min-width: 2.5rem; color: var(--accent); }
+
+/* ── FileChangesPanel ── */
+.file-changes-panel { margin-top: var(--sp-3); }
+.file-changes-toggle { width: 100%; display: flex; align-items: center; gap: var(--sp-2); justify-content: flex-start; text-align: left; background: transparent; color: var(--fg-secondary); border: var(--bw) solid var(--bd-subtle); border-radius: var(--r-md); padding: var(--sp-2) var(--sp-3); cursor: pointer; }
+.file-changes-toggle:hover { background: var(--bg-hover); border-color: var(--bd-default); }
+.file-changes-summary { font-family: var(--font-mono); font-size: var(--fs-xs); }
+.file-changes-body { margin-top: var(--sp-2); }
+.file-changes-list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--sp-1); }
+.file-changes-item { display: flex; align-items: center; gap: var(--sp-2); }
+.file-changes-item .file-path { flex: 1; min-width: 0; font-family: var(--font-mono); font-size: var(--fs-xs); }
+.file-changes-item .status-icon { width: 1.4rem; height: 1.4rem; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-sm); font-family: var(--font-mono); font-size: var(--fs-2xs); font-weight: 800; flex-shrink: 0; }
+.status-icon.status-modified { background: var(--st-idle-bg); color: var(--st-idle); }
+.status-icon.status-added { background: var(--st-ok-bg); color: var(--st-ok); }
+.status-icon.status-deleted { background: var(--st-err-bg); color: var(--st-err); }
+.status-icon.status-renamed { background: var(--st-info-bg); color: var(--st-info); }
+.status-icon.status-untracked { background: var(--st-warn-bg); color: var(--st-warn); }
+.file-delta { display: inline-flex; gap: var(--sp-1); font-family: var(--font-mono); font-size: var(--fs-2xs); margin-left: auto; white-space: nowrap; }
+.delta-added { color: var(--st-ok); }
+.delta-deleted { color: var(--st-err); }
+.file-changes-diff { margin-top: var(--sp-2); border-top: var(--bw) solid var(--bd-subtle); padding-top: var(--sp-2); }
 .diff-content pre { max-height: 520px; overflow: auto; margin: var(--sp-4) 0 0; padding: var(--sp-3); border-radius: var(--r-lg); border: var(--bw) solid var(--bd-subtle); background: color-mix(in oklab, var(--bg-app) 88%, black 12%); color: var(--fg-secondary); font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.45; }
 .activity-list { display: grid; gap: var(--sp-2); margin: var(--sp-4) 0 0; padding-left: var(--sp-4); }
 .activity-list li { color: var(--fg-secondary); }
@@ -626,7 +646,7 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid color-mix(i
 .docs-actions { display: flex; gap: var(--sp-2); margin-top: var(--sp-2); }
 
 .settings-tab .connection-panel { max-width: 980px; }
-.stub-surface { max-width: 860px; }
+/* compare tab stub removed — add back with dev flag if revived */
 .settings-grid { display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap: var(--sp-3); margin-top: var(--sp-4); }
 .error-boundary-panel { max-width: 860px; margin: var(--sp-8) auto; }
 .error-boundary-panel pre { max-height: 18rem; overflow: auto; border: var(--bw) solid var(--bd-subtle); border-radius: var(--r-lg); padding: var(--sp-3); background: var(--bg-input); color: var(--fg-tertiary); white-space: pre-wrap; }

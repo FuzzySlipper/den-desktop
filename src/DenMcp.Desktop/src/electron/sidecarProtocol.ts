@@ -349,6 +349,56 @@ export interface TaskUpdateResponse {
   assigned_to?: string | null;
 }
 
+// ── Channels (task #1541) ──────────────────────────────────────────────────
+
+export interface ChannelSummary {
+  id: number;
+  project_id: string | null;
+  slug: string | null;
+  kind: string | null;
+}
+
+export interface ChannelMessageRow {
+  id: number;
+  channel_id: number;
+  sender_identity: string;
+  sender_type: string;
+  body: string;
+  created_at: string;
+}
+
+export interface ListChannelMessagesRequest extends Record<string, JsonValue | undefined> {
+  channel_id: number;
+  limit?: number;
+  after_id?: number | null;
+}
+
+export interface ListChannelMessagesResponse {
+  messages: ChannelMessageRow[];
+}
+
+export interface PostChannelMessageRequest extends Record<string, JsonValue | undefined> {
+  channel_id: number;
+  body: string;
+  sender_identity: string;
+  sender_type: string;
+}
+
+export interface PostChannelMessageResponse {
+  message: ChannelMessageRow;
+}
+
+export interface EnsureDefaultChannelRequest extends Record<string, JsonValue | undefined> {
+  project_id: string;
+}
+
+export interface EnsureDefaultChannelResponse {
+  id: number;
+  slug: string | null;
+  project_id: string | null;
+  kind: string | null;
+}
+
 // ── Documents tab (task #1147) ────────────────────────────────────────────
 
 export interface DocumentsListRequest {
@@ -716,6 +766,12 @@ export function createSidecarBridgeFacade(client: SidecarBridgeClient) {
       facade.tasksGetDashboardSnapshot(request as JsonValue) as Promise<TResponse>,
     messagesGetSnapshot: async <TResponse = MessagesSnapshot>(request: MessagesSnapshotRequest): Promise<TResponse> =>
       facade.messagesGetSnapshot(request as JsonValue) as Promise<TResponse>,
+    listChannelMessages: async <TResponse = ListChannelMessagesResponse>(request: ListChannelMessagesRequest): Promise<TResponse> =>
+      facade.listChannelMessages(request as JsonValue) as Promise<TResponse>,
+    postChannelMessage: async <TResponse = PostChannelMessageResponse>(request: PostChannelMessageRequest): Promise<TResponse> =>
+      facade.postChannelMessage(request as JsonValue) as Promise<TResponse>,
+    ensureDefaultChannel: async <TResponse = EnsureDefaultChannelResponse>(request: EnsureDefaultChannelRequest): Promise<TResponse> =>
+      facade.ensureDefaultChannel(request as JsonValue) as Promise<TResponse>,
     documentsList: async <TResponse = DocumentsListResponse>(request: DocumentsListRequest): Promise<TResponse> =>
       facade.documentsList(request as unknown as JsonValue) as Promise<TResponse>,
     documentGet: async <TResponse = DocumentGetResponse>(request: DocumentGetRequest): Promise<TResponse> =>

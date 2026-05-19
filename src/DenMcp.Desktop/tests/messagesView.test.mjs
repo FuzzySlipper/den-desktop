@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildActivityEventView, buildMessagesView } from '../src/messagesView.ts';
+import { buildActivityEventView, buildMessagesView, stripHtmlTags } from '../src/messagesView.ts';
 
 function makeSnapshot(overrides = {}) {
   return {
@@ -69,9 +69,63 @@ test('buildActivityEventView tolerates malformed metadata and maps failed status
     created_at: '2026-05-19T02:59:00.000Z',
     updated_at: null,
   }, Date.parse('2026-05-19T03:00:00.000Z'));
-
   assert.equal(row.title, 'tool call failed');
   assert.equal(row.statusLabel, 'failed');
   assert.equal(row.statusTone, 'err');
   assert.equal(row.count, 1);
+});
+
+test('stripHtmlTags strips details/summary tags keeping inner text', () => {
+  const input = `<details>
+<summary>What I'd propose</summary>
+
+1. Take #1308
+2. Store findings
+3. Create implementation tasks
+</details>`;
+
+  const result = stripHtmlTags(input);
+  assert.equal(result.includes('<details>'), false);
+  assert.equal(result.includes('</details>'), false);
+  assert.equal(result.includes('<summary>'), false);
+  assert.equal(result.includes('</summary>'), false);
+  assert.ok(result.includes("What I'd propose"));
+  assert.ok(result.includes('Take #1308'));
+});
+
+test('stripHtmlTags handles nested HTML tags', () => {
+  const result = stripHtmlTags('<div class="x"><span>hello</span> <strong>world</strong></div>');
+  assert.equal(result, 'hello world');
+});
+
+test('stripHtmlTags returns empty string for empty/only-tag input', () => {
+  assert.equal(stripHtmlTags(''), '');
+  assert.equal(stripHtmlTags('<br/>'), '');
+  assert.equal(stripHtmlTags('<div></div>'), '');
+});
+
+test('buildMessagesView strips HTML from message content', () => {
+  const view = buildMessagesView(makeSnapshot({
+    messages: [{
+      id: 100,
+      sender: 'den-desktop-runner',
+      content: `<details>\n<summary>Proposal</summary>\n1. Audit\n2. Clean up\n</details>`,
+      content_summary: '<details><summary>Proposal</summary>1. Audit, 2. Clean up</details>',
+      intent: 'handoff',
+      metadata_type: 'implementation_packet',
+      created_at: '2026-05-19T02:59:00.000Z',
+      is_unread: false,
+      task_id: null,
+      thread_id: null,
+    }],
+  }), Date.parse('2026-05-19T03:00:00.000Z'));
+
+  assert.equal(view.messages.length, 1);
+  const msg = view.messages[0];
+  assert.equal(msg.contentFull.includes('<details>'), false);
+  assert.equal(msg.contentFull.includes('</details>'), false);
+  assert.ok(msg.contentFull.includes('Proposal'));
+  assert.ok(msg.contentFull.includes('1. Audit'));
+  assert.equal(msg.contentPreview.includes('<summary>'), false);
+  assert.ok(msg.contentPreview.includes('Proposal'));
 });

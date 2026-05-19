@@ -1,6 +1,23 @@
 import { useMemo, useRef, useState } from 'react';
 import { ShellConsoleMode, shellConsoleModes } from '../shellState';
 import { ConsoleCommandHistoryEntry, ConsoleCommandLine, ConsoleLine } from '../consoleLines';
+import type { ChannelMessageRow } from '../electron/sidecarProtocol';
+
+/** Context for channel composer integration in the console dock. */
+export interface ConsoleDockChannelContext {
+  /** The project ID for which the channel is active, or '_global'. */
+  projectId: string;
+  /** The active/default channel, or null for global/no-channel mode. */
+  activeChannel: { id: number; slug: string } | null;
+  /** Recent channel messages to display in the scrollback. */
+  messages: ChannelMessageRow[];
+  /** Send a plain-text message to the channel. */
+  onSendMessage: (body: string) => Promise<void>;
+  /** True while a channel operation is in progress. */
+  loading: boolean;
+  /** Error message from the last channel operation, or null. */
+  error: string | null;
+}
 
 interface ConsoleDockProps {
   mode: ShellConsoleMode;
@@ -13,13 +30,14 @@ interface ConsoleDockProps {
   activeProgressLines?: ConsoleCommandLine[];
   /** Name of the currently running command for the in-flight progress header. */
   activeProgressCommand?: string;
+  /** Channel composer context. When set, plain-text input sends channel messages. */
+  channelContext?: ConsoleDockChannelContext | null;
 }
 
-type InputMode = 'filter' | 'palette' | 'agent';
+type InputMode = 'filter' | 'palette';
 
 function detectInputMode(value: string): InputMode {
   if (value.startsWith('/')) return 'palette';
-  if (value.startsWith('@')) return 'agent';
   return 'filter';
 }
 
@@ -41,17 +59,23 @@ export function ConsoleDock({
   consoleCommandHistory,
   activeProgressLines,
   activeProgressCommand,
+  channelContext,
 }: ConsoleDockProps) {
   const [inputValue, setInputValue] = useState('');
   const [runningCommand, setRunningCommand] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const inputMode = detectInputMode(inputValue);
+  const inputMode = channelContext && !inputValue.startsWith('/') ? 'filter' : detectInputMode(inputValue);
+
+  // Channel mode: when channelContext is set and input doesn't start with '/',
+  // we are in channel-message mode. Otherwise palette (/) mode takes over.
+  const isChannelInput = !!channelContext && inputMode === 'filter' && inputValue.trim().length > 0;
 
   // Merge diagnostic lines with command history entries for the output display.
   // In-flight progress lines are rendered before the final response history.
+  // Channel messages are included when channelContext is provided.
   const displayLines = useMemo(() => {
-    const result: { kind: 'diag' | 'cmd-start' | 'cmd-line' | 'cmd-end' | 'progress-line'; data: unknown; key: string }[] = [];
+    const result: { kind: 'diag' | 'cmd-start' | 'cmd-line' | 'cmd-end' | 'progress-line' | 'channel-msg'; data: unknown; key: string }[] = [];
 
     // When showing command history, prepend history entries
     // In-flight progress lines: rendered before history when a command is running.
@@ -149,12 +173,28 @@ export function ConsoleDock({
       }
     }
 
-    return result;
-  }, [lines, inputValue, inputMode, showHistory, consoleCommandHistory, activeProgressLines, activeProgressCommand]);
+    // Append channel messages when channel context is available and not showing history
+    if (!showHistory && channelContext && channelContext.messages.length > 0) {
+      if (result.length > 0) {
+        result.push({
+          kind: 'cmd-end',
+          data: null,
+          key: 'ch-separator',
+        });
+      }
+      for (const msg of channelContext.messages) {
+        result.push({
+          kind: 'channel-msg',
+          data: msg,
+          key: `ch:${msg.id}`,
+        });
+      }
+    }
 
-  const modeIndicator = inputMode !== 'filter'
-    ? (inputMode === 'palette' ? '[command]' : '[agent prompt]')
-    : null;
+    return result;
+  }, [lines, inputValue, inputMode, showHistory, consoleCommandHistory, activeProgressLines, activeProgressCommand, channelContext]);
+
+  const modeIndicator = inputMode === 'palette' ? '[command]' : null;
 
   const handleInputChange = (value: string) => {
     setInputValue(value);
@@ -164,22 +204,40 @@ export function ConsoleDock({
   };
 
   const handleKeyDown = async (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter' && inputValue.trim() && onRunCommand) {
+    if (event.key === 'Enter' && inputValue.trim()) {
       const trimmed = inputValue.trim();
 
-      // If in palette mode (/), strip the leading /
-      const command = trimmed.startsWith('/') ? trimmed.slice(1) : trimmed;
-
-      if (command) {
+      // If channel context is active and input does NOT start with '/',
+      // send as a channel message instead of a console command.
+      if (channelContext && !trimmed.startsWith('/') && trimmed.length > 0) {
         setRunningCommand(true);
         setShowHistory(false);
         try {
-          await onRunCommand(command);
+          await channelContext.onSendMessage(trimmed);
+        } catch {
+          // Error is surfaced through channelContext.error
         } finally {
           setRunningCommand(false);
           setInputValue('');
-          // After running a command, show the history briefly
-          setShowHistory(true);
+        }
+        return;
+      }
+
+      if (onRunCommand) {
+        // If in palette mode (/), strip the leading /
+        const command = trimmed.startsWith('/') ? trimmed.slice(1) : trimmed;
+
+        if (command) {
+          setRunningCommand(true);
+          setShowHistory(false);
+          try {
+            await onRunCommand(command);
+          } finally {
+            setRunningCommand(false);
+            setInputValue('');
+            // After running a command, show the history briefly
+            setShowHistory(true);
+          }
         }
       }
     } else if (event.key === 'Escape') {
@@ -199,19 +257,29 @@ export function ConsoleDock({
         <div className="console-prompt">
           <span className="console-glyph" aria-hidden="true">›_</span>
           <span className="console-target">den-mcp · operator</span>
+          {channelContext ? (
+            <span className={`console-channel-badge ${channelContext.activeChannel ? '' : 'global'}`}>
+              {channelContext.activeChannel
+                ? `[${channelContext.projectId}:#${channelContext.activeChannel.slug}]`
+                : `[${channelContext.projectId === '_global' ? 'Global' : channelContext.projectId}]`}
+            </span>
+          ) : null}
           {modeIndicator ? (
-            <span className="console-mode-stub">{modeIndicator}</span>
+            <span className='console-mode-indicator'>{modeIndicator}</span>
           ) : null}
           {runningCommand ? <span className="console-running" aria-label="Running command">⟳</span> : null}
+          {channelContext && channelContext.error ? (
+            <span className="console-channel-error" title={channelContext.error}>⚠</span>
+          ) : null}
           <input
             ref={inputRef}
-            aria-label={inputMode === 'palette' ? 'Console command' : inputMode === 'agent' ? 'Agent prompt (stub)' : 'Filter console logs'}
+            aria-label={inputMode === 'palette' ? 'Console command' : 'Filter console logs'}
             placeholder={
-              inputMode === 'palette'
-                ? 'type a command (help, refresh, git-status…)'
-                : inputMode === 'agent'
-                  ? 'agent prompt stub — type a message…'
-                  : 'run a command (/help), ask an agent (@), or filter logs…'
+              channelContext && inputMode === 'filter'
+                ? 'type a message or /command…'
+                : inputMode === 'palette'
+                  ? 'type a command (help, refresh, git-status…)'
+                  : 'run a command (/help) or filter logs…'
             }
             value={inputValue}
             onChange={(event) => handleInputChange(event.target.value)}
@@ -296,6 +364,20 @@ export function ConsoleDock({
                     <span className="ts" />
                     <span className="lvl" />
                     <span className="console-cmd-dash">· · ·</span>
+                  </div>
+                );
+              }
+
+              if (item.kind === 'channel-msg') {
+                const msg = item.data as ChannelMessageRow;
+                const timestamp = formatTimestampShort(msg.created_at);
+                const preview = msg.body.length > 120 ? msg.body.slice(0, 120) + '…' : msg.body;
+                return (
+                  <div className="console-line console-channel-msg" key={item.key}>
+                    <span className="ts">{timestamp}</span>
+                    <span className="lvl channel">ch</span>
+                    <span className="console-channel-sender">{msg.sender_identity}</span>
+                    <span>{preview}</span>
                   </div>
                 );
               }

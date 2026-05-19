@@ -5,7 +5,6 @@ export const shellTabs = [
   { id: 'messages', label: 'messages', icon: '✉', badge: null },
   { id: 'docs', label: 'docs', icon: '📄', badge: null },
   { id: 'git', label: 'git', icon: '⋔', badge: null },
-  { id: 'compare', label: 'compare', icon: '⫶⫶', badge: null },
   { id: 'terminals', label: 'terminals', icon: '>_', badge: null },
   { id: 'collaboration', label: 'collaboration', icon: '✺', badge: null },
   { id: 'settings', label: 'settings', icon: '⚙', badge: null },

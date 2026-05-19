@@ -137,7 +137,7 @@ function MessagesFilterBar({
   currentFilter: MessageFilterType;
   onChange: (filter: MessageFilterType) => void;
 }) {
-  const filters: MessageFilterType[] = ['all', 'messages', 'stream', 'thoughts', 'user', 'notifications'];
+  const filters: MessageFilterType[] = ['all', 'messages', 'stream', 'user', 'notifications'];
   return (
     <div className="messages-filter-bar">
       {filters.map((f) => (
@@ -158,7 +158,6 @@ function emptyStateLabel(filter: MessageFilterType): string {
   switch (filter) {
     case 'messages': return 'No regular messages found.';
     case 'stream': return 'No workflow stream entries found.';
-    case 'thoughts': return 'No thought entries found.';
     case 'user': return 'No user messages found.';
     case 'notifications': return 'No notifications found.';
     default: return 'No messages found.';
@@ -168,7 +167,6 @@ function emptyStateLabel(filter: MessageFilterType): string {
 function emptyStateDescription(filter: MessageFilterType): string {
   switch (filter) {
     case 'stream': return 'Agent stream data requires backend support. Only task-thread and project messages are currently loaded.';
-    case 'thoughts': return 'Agent thought data requires backend support. The current filter provides a best-effort placeholder classification.';
     case 'user': return 'No messages sent by the user identity were found in the current view.';
     case 'notifications': return 'Notifications appear when agents send user-facing alerts. None are present in the current view.';
     default: return 'Messages will appear here once they are sent in Den for this project.';

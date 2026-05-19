@@ -28,6 +28,8 @@ import { type TaskStatusFilter } from '../tasksDashboardView';
 import { ConsoleDock } from './ConsoleDock';
 import { CommandPalette, type CommandPaletteCallbacks } from './CommandPalette';
 import { GLOBAL_PROJECT_ID, globalRailRow, isMultiWorkspaceProject, projectRowTitle, spaceRows, workspaceRowLabel, workspaceRowsForProject, workspaceToggleLabel } from '../railView';
+import { useChannelState } from '../desktop/useChannelState';
+import type { ConsoleDockChannelContext } from './ConsoleDock';
 
 interface AppShellProps {
   state: ShellState;
@@ -42,6 +44,8 @@ interface AppShellProps {
   activeProjectId?: string | null;
   /** Active snapshot key used to highlight the selected workspace in multi-workspace projects. */
   activeSnapshotKey?: string | null;
+  /** Effective project filter (_global, specific project ID, or null). */
+  effectiveProjectFilter?: string | null;
   onSelectProject?: (projectId: string) => void;
   onSelectSnapshot?: (snapshot: LocalGitSnapshot) => void;
   onRunConsoleCommand?: (command: string) => Promise<void>;
@@ -71,6 +75,35 @@ export function AppShell({ state, onStateChange, status, snapshots, sessionSnaps
     }),
     [diagnostics, ipcHealth, status?.denConnection, status?.observerStatuses, status?.lastSyncAt],
   );
+
+  // Channel composer state: active only for specific (non-global, non-null) project IDs.
+  const { activeChannel, messages, loading, error, sendMessage } = useChannelState(
+    activeProjectId && activeProjectId !== GLOBAL_PROJECT_ID ? activeProjectId : null,
+  );
+
+  // Build channel context for ConsoleDock.
+  // null → no channel UI. Set → shows channel badge and enables plain-text sending.
+  const channelContext: ConsoleDockChannelContext | null = useMemo(() => {
+    if (!activeProjectId) return null;
+    if (activeProjectId === GLOBAL_PROJECT_ID) {
+      return {
+        projectId: '_global',
+        activeChannel: null,
+        messages: [],
+        onSendMessage: async () => {},
+        loading: false,
+        error: null,
+      };
+    }
+    return {
+      projectId: activeProjectId,
+      activeChannel: activeChannel ? { id: activeChannel.id, slug: activeChannel.slug ?? '?' } : null,
+      messages,
+      onSendMessage: sendMessage,
+      loading,
+      error,
+    };
+  }, [activeProjectId, activeChannel, messages, sendMessage, loading, error]);
 
   const paletteCallbacks: CommandPaletteCallbacks = useMemo(
     () => ({
@@ -225,6 +258,7 @@ export function AppShell({ state, onStateChange, status, snapshots, sessionSnaps
         consoleCommandHistory={consoleCommandHistory}
         activeProgressLines={activeProgressLines}
         activeProgressCommand={activeProgressCommand}
+        channelContext={channelContext}
       />
       <StatusBar status={status} snapshots={snapshots} sessionSnapshots={sessionSnapshots} state={state} />
     </div>

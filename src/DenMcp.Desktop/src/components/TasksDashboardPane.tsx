@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FileChangesPanel } from './FileChangesPanel';
+import type { LocalGitSnapshot } from '../desktop/sidecarBridgeApi';
 import type {
   TasksDashboardSnapshot,
   TasksDashboardTaskRow,
@@ -48,13 +50,15 @@ interface Props {
   onNavigateToMessagesTab?: (taskId: number) => void;
   /** Callback to switch to the Docs tab. */
   onNavigateToDocsTab?: () => void;
+  /** Local git snapshots for file-level change visibility in task detail. */
+  snapshots?: LocalGitSnapshot[];
 }
 
 const REFRESH_INTERVAL_MS = 30_000;
 const STATUS_FILTERS: TaskStatusFilter[] = ['all', 'in_progress', 'review', 'blocked', 'planned', 'done', 'cancelled'];
 const SORT_MODES: TaskSortMode[] = ['priority', 'status', 'id', 'title', 'updated'];
 
-export function TasksDashboardPane({ projectId, parentTaskId, statusFilterOverride, onNavigateToMessagesTab, onNavigateToDocsTab }: Props) {
+export function TasksDashboardPane({ projectId, parentTaskId, statusFilterOverride, onNavigateToMessagesTab, onNavigateToDocsTab, snapshots }: Props) {
   const [snapshot, setSnapshot] = useState<TasksDashboardSnapshot | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -250,6 +254,7 @@ export function TasksDashboardPane({ projectId, parentTaskId, statusFilterOverri
           onNavigateToMessagesTab={onNavigateToMessagesTab}
           onNavigateToDocsTab={onNavigateToDocsTab}
           onTaskUpdated={() => void fetchSnapshot()}
+          snapshots={snapshots}
         />
       )}
     </section>
@@ -531,6 +536,7 @@ function TaskDetailOverlay({
   onNavigateToMessagesTab,
   onNavigateToDocsTab,
   onTaskUpdated,
+  snapshots,
 }: {
   task: TaskRowView;
   snapshot: TasksDashboardSnapshot | null;
@@ -540,6 +546,7 @@ function TaskDetailOverlay({
   onNavigateToMessagesTab?: (taskId: number) => void;
   onNavigateToDocsTab?: () => void;
   onTaskUpdated: () => void;
+  snapshots?: LocalGitSnapshot[];
 }) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
@@ -959,6 +966,15 @@ function TaskDetailOverlay({
             )}
           </div>
 
+          {/* File changes */}
+          {snapshots && (
+            <FileChangesPanelSection
+              taskId={task.id}
+              snapshots={snapshots}
+              projectId={projectId ?? ''}
+            />
+          )}
+
           {/* Documents section */}
           <div className="task-detail-section">
             <h4 className="task-detail-section-heading">Documents</h4>
@@ -1169,5 +1185,40 @@ function BreadcrumbBar({
         #{parentTaskId}{parentTitle ? ` ${parentTitle}` : ''}
       </span>
     </nav>
+  );
+}
+
+/** Find matching workspace snapshot for a task and render FileChangesPanel. */
+function FileChangesPanelSection({
+  taskId,
+  snapshots,
+  projectId,
+}: {
+  taskId: number;
+  snapshots: LocalGitSnapshot[];
+  projectId: string;
+}) {
+  const matchingSnapshot = useMemo(() => {
+    // Find a snapshot whose scope.taskId matches the overlay task
+    return snapshots.find((s) => s.scope.taskId === taskId) ?? null;
+  }, [snapshots, taskId]);
+
+  if (!matchingSnapshot) return null;
+
+  const { changed_files: files, dirty_counts: dirtyCounts } = matchingSnapshot.request;
+  if (!files || files.length === 0) return null;
+
+  return (
+    <div className='task-detail-section'>
+      <FileChangesPanel
+        files={files}
+        dirtyCounts={dirtyCounts}
+        projectId={projectId}
+        taskId={taskId}
+        workspaceId={matchingSnapshot.scope.workspaceId}
+        rootPath={matchingSnapshot.scope.rootPath}
+        sourceInstanceId={matchingSnapshot.request.source_instance_id}
+      />
+    </div>
   );
 }

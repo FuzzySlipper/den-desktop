@@ -438,6 +438,106 @@ public sealed class DenHttpClient
         }
     }
 
+    public async Task<IReadOnlyList<DenChannelMessage>> ListChannelMessagesAsync(
+        string baseUrl,
+        long channelId,
+        int limit = 50,
+        long? afterId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new List<QueryParameter>
+        {
+            new("limit", Math.Clamp(limit, 1, 100).ToString(System.Globalization.CultureInfo.InvariantCulture)),
+        };
+        if (afterId is { } id)
+        {
+            query.Add(new QueryParameter("afterId", id.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        }
+
+        var path = $"/api/channels/{channelId}/messages";
+        var response = await SendAsync(
+            () => new HttpRequestMessage(HttpMethod.Get, BuildUrl(baseUrl, path, query)),
+            "Unable to fetch Den Channels messages",
+            cancellationToken).ConfigureAwait(false);
+
+        using (response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await ReadBodyAsync(response, cancellationToken).ConfigureAwait(false);
+                throw new DenHttpClientException($"Den Channels messages list returned HTTP {(int)response.StatusCode}: {body}");
+            }
+
+            return await ReadJsonAsync<List<DenChannelMessage>>(
+                response,
+                "Unable to parse Den Channels messages",
+                cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    public async Task<DenChannelMessage> PostChannelMessageAsync(
+        string baseUrl,
+        long channelId,
+        DenSendChannelMessageRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var path = $"/api/channels/{channelId}/messages";
+        var response = await SendAsync(
+            () => new HttpRequestMessage(HttpMethod.Post, JoinUrl(baseUrl, path))
+            {
+                Content = JsonContent(request),
+            },
+            "Unable to post Den Channels message",
+            cancellationToken).ConfigureAwait(false);
+
+        using (response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await ReadBodyAsync(response, cancellationToken).ConfigureAwait(false);
+                throw new DenHttpClientException($"Den Channels message post returned HTTP {(int)response.StatusCode}: {body}");
+            }
+
+            return await ReadJsonAsync<DenChannelMessage>(
+                response,
+                "Unable to parse posted Den Channels message",
+                cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    public async Task<DenEnsureDefaultChannelResult> EnsureProjectDefaultChannelAsync(
+        string baseUrl,
+        string projectId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(projectId);
+
+        var url = BuildUrl(
+            baseUrl,
+            "/api/channels/ensure-default",
+            new[] { new QueryParameter("projectId", projectId) });
+        var response = await SendAsync(
+            () => new HttpRequestMessage(HttpMethod.Post, url),
+            "Unable to ensure default Den channel",
+            cancellationToken).ConfigureAwait(false);
+
+        using (response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await ReadBodyAsync(response, cancellationToken).ConfigureAwait(false);
+                throw new DenHttpClientException($"Den ensure-default channel returned HTTP {(int)response.StatusCode}: {body}");
+            }
+
+            return await ReadJsonAsync<DenEnsureDefaultChannelResult>(
+                response,
+                "Unable to parse ensure-default channel response",
+                cancellationToken).ConfigureAwait(false);
+        }
+    }
+
     public async Task<DenMessage?> GetMessageAsync(
         string baseUrl,
         string projectId,

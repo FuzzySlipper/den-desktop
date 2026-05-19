@@ -6,7 +6,7 @@ import { ipcHealthState, ipcHealthSummary, formatDuration, STALE_IPC_AFTER_MS } 
 export type { ConsoleCommandLine } from './desktop/sidecarBridgeApi.ts';
 
 /** @deprecated Use ConsoleCommandLine (canonical bridge name) instead. */
-export type ConsoleCommandOutputLine = import('./desktop/sidecarBridgeApi.ts').ConsoleCommandLine;
+// The alias is intentionally retained until all external references are ported.
 
 export interface ConsoleLine {
   ts: string;

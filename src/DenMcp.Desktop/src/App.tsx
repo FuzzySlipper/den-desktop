@@ -294,11 +294,10 @@ export function App() {
   const tabContent: Record<ShellTabId, ReactNode> = {
     operator: operatorTab,
     agent: <AgentPane selection={agentSelection} />,
-    tasks: <TasksDashboardPane projectId={effectiveProjectFilter === GLOBAL_PROJECT_ID ? null : (effectiveProjectFilter ?? null)} parentTaskId={effectiveProjectFilter === GLOBAL_PROJECT_ID ? null : (activeContextSnapshot?.scope.taskId ?? null)} statusFilterOverride={taskStatusFilterOverride} onNavigateToMessagesTab={(taskId) => setShellState((current) => ({ ...current, activeTab: 'messages' as ShellTabId }))} onNavigateToDocsTab={() => setShellState((current) => ({ ...current, activeTab: 'docs' as ShellTabId }))} />,
+    tasks: <TasksDashboardPane projectId={effectiveProjectFilter === GLOBAL_PROJECT_ID ? null : (effectiveProjectFilter ?? null)} parentTaskId={effectiveProjectFilter === GLOBAL_PROJECT_ID ? null : (activeContextSnapshot?.scope.taskId ?? null)} statusFilterOverride={taskStatusFilterOverride} onNavigateToMessagesTab={(taskId) => setShellState((current) => ({ ...current, activeTab: 'messages' as ShellTabId }))} onNavigateToDocsTab={() => setShellState((current) => ({ ...current, activeTab: 'docs' as ShellTabId }))} snapshots={filteredSnapshots} />,
     messages: <MessagesPane projectId={effectiveProjectFilter === GLOBAL_PROJECT_ID ? null : (effectiveProjectFilter ?? null)} taskId={effectiveProjectFilter === GLOBAL_PROJECT_ID ? null : (activeContextSnapshot?.scope.taskId ?? null)} />,
     docs: <DocsPane projectId={effectiveProjectFilter === GLOBAL_PROJECT_ID ? null : (effectiveProjectFilter ?? null)} />,
     git: gitTab,
-    compare: <StubSurface eyebrow="Compare" title="Multi-worktree compare" description="Routed surface reserved for pinned worktree panes and side-by-side terminal/output comparison without making renderer state authoritative." />,
     terminals: terminalsTab,
     collaboration: collaborationTab,
     settings: runtimeSettingsTab,
@@ -324,6 +323,7 @@ export function App() {
       ipcHealth={runtime.ipcHealth}
       activeProjectId={selectedProjectId}
       activeSnapshotKey={activeContextSnapshot ? snapshotKey(activeContextSnapshot) : null}
+      effectiveProjectFilter={effectiveProjectFilter}
       onSelectProject={selectProject}
       onSelectSnapshot={handleSelectSnapshot}
       onRunConsoleCommand={runConsoleCommand}
@@ -336,19 +336,5 @@ export function App() {
     >
       {tabContent}
     </AppShell>
-  );
-}
-
-function StubSurface({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
-  return (
-    <section className="panel surface-panel stub-surface">
-      <p className="eyebrow">{eyebrow}</p>
-      <h2>{title}</h2>
-      <p className="muted">{description}</p>
-      <div className="empty-state">
-        <strong>Route is present; backend ownership is intentionally deferred.</strong>
-        <p>This shell foundation exposes the surface without inventing runtime/domain data outside the bridge boundary.</p>
-      </div>
-    </section>
   );
 }

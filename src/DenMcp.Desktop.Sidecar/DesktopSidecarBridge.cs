@@ -45,6 +45,7 @@ public static class DesktopSidecarBridge
         services.AddSingleton<CollaborationResponseDeliveryService>();
         services.AddSingleton<TasksDashboardProjectionService>();
         services.AddSingleton<MessagesProjectionService>();
+        services.AddSingleton<ChannelsProjectionService>();
         services.AddSingleton<DocumentsListHandler>();
         services.AddSingleton<DocumentGetHandler>();
         services.AddSingleton<DocumentStoreHandler>();
@@ -58,7 +59,7 @@ public static class DesktopSidecarBridge
                 host.SchemaVersion = DesktopSidecarProtocol.SchemaVersion;
                 host.SchemaBundleId = DesktopSidecarProtocol.SchemaBundleId;
                 host.SupportedTransports = new[] { WebSocketBridgeTransportNames.LoopbackWebSocket };
-                host.FeatureFlags = new[] { "operator_runtime", "typed_runtime_bridge", "tmux_operator_sessions", "direct_pty_operator_sessions", "app_agent_bridge_foundation", "tasks_dashboard_projection", "messages_tab_projection", "documents_tab" };
+                host.FeatureFlags = new[] { "operator_runtime", "typed_runtime_bridge", "tmux_operator_sessions", "direct_pty_operator_sessions", "app_agent_bridge_foundation", "tasks_dashboard_projection", "messages_tab_projection", "documents_tab", "channels_message_protocol" };
             });
 
         return services.BuildServiceProvider(validateScopes: true);
@@ -136,6 +137,14 @@ public static class DesktopSidecarBridge
             .RegisterCommand<MessagesSnapshotRequest, MessagesSnapshot, MessagesSnapshotHandler>(
                 DesktopSidecarProtocol.MessagesGetSnapshotCommand,
                 config => { config.SupportsCancellation = true; })
+            // Channels message protocol (task #1182)
+            .RegisterCommand<ListChannelMessagesRequest, ListChannelMessagesResponse, ListChannelMessagesHandler>(
+                DesktopSidecarProtocol.ListChannelMessagesCommand,
+                config => { config.SupportsCancellation = true; })
+            .RegisterCommand<PostChannelMessageRequest, PostChannelMessageResponse, PostChannelMessageHandler>(
+                DesktopSidecarProtocol.PostChannelMessageCommand)
+            .RegisterCommand<EnsureDefaultChannelRequest, EnsureDefaultChannelResponse, EnsureDefaultChannelHandler>(
+                DesktopSidecarProtocol.EnsureDefaultChannelCommand)
             // Documents tab (task #1147)
             .RegisterCommand<DocumentsListRequest, DocumentsListResponse, DocumentsListHandler>(
                 DesktopSidecarProtocol.DocumentsListCommand)
@@ -288,6 +297,25 @@ public static class DesktopSidecarBridge
             Schema(DesktopSidecarProtocol.TasksGetDashboardSnapshotCommand + ".response", TasksDashboardSnapshotResponseSchema),
             Schema(DesktopSidecarProtocol.MessagesGetSnapshotCommand + ".request", MessagesSnapshotRequestSchema),
             Schema(DesktopSidecarProtocol.MessagesGetSnapshotCommand + ".response", MessagesSnapshotResponseSchema),
+            // Channels message schemas (task #1182)
+            Schema(DesktopSidecarProtocol.ListChannelMessagesCommand + ".request", """"
+                {"type":"object","additionalProperties":false,"required":["project_id","channel_id"],"properties":{"project_id":{"type":"string"},"channel_id":{"type":"integer"},"limit":{"type":"integer"},"after_id":{"type":["integer","null"]}}}
+                """"),
+            Schema(DesktopSidecarProtocol.ListChannelMessagesCommand + ".response", """"
+                {"type":"object","additionalProperties":false,"required":["channel_id","messages","total_count"],"properties":{"channel_id":{"type":"integer"},"messages":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","channel_id","sender_identity","sender_type","body"],"properties":{"id":{"type":"integer"},"channel_id":{"type":"integer"},"sender_identity":{"type":"string"},"sender_type":{"type":"string"},"body":{"type":"string"},"created_at":{"type":["string","null"]}}}},"total_count":{"type":"integer"}}}
+                """"),
+            Schema(DesktopSidecarProtocol.PostChannelMessageCommand + ".request", """"
+                {"type":"object","additionalProperties":false,"required":["project_id","channel_id","body","sender_identity"],"properties":{"project_id":{"type":"string"},"channel_id":{"type":"integer"},"body":{"type":"string"},"sender_identity":{"type":"string"},"sender_type":{"type":"string"}}}
+                """"),
+            Schema(DesktopSidecarProtocol.PostChannelMessageCommand + ".response", """"
+                {"type":"object","additionalProperties":false,"required":["message"],"properties":{"message":{"type":"object","additionalProperties":false,"required":["id","channel_id","sender_identity","sender_type","body"],"properties":{"id":{"type":"integer"},"channel_id":{"type":"integer"},"sender_identity":{"type":"string"},"sender_type":{"type":"string"},"body":{"type":"string"},"created_at":{"type":["string","null"]}}}}}
+                """"),
+            Schema(DesktopSidecarProtocol.EnsureDefaultChannelCommand + ".request", """"
+                {"type":"object","additionalProperties":false,"required":["project_id"],"properties":{"project_id":{"type":"string"}}}
+                """"),
+            Schema(DesktopSidecarProtocol.EnsureDefaultChannelCommand + ".response", """"
+                {"type":"object","additionalProperties":false,"required":["id","slug","project_id","kind","was_created"],"properties":{"id":{"type":"integer"},"slug":{"type":"string"},"project_id":{"type":"string"},"kind":{"type":"string"},"was_created":{"type":"boolean"}}}
+                """"),
             // Documents tab (task #1147)
             Schema(DesktopSidecarProtocol.DocumentsListCommand + ".request", DocumentsListRequestSchema),
             Schema(DesktopSidecarProtocol.DocumentsListCommand + ".response", DocumentsListResponseSchema),

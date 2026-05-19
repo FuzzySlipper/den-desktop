@@ -1,4 +1,4 @@
-import type { AppAgentBuildContextRequest, AppAgentCancelRequest, AppAgentInvokeToolRequest, AppAgentListToolsRequest, AppAgentResponse, AppAgentSelection, TaskUpdateRequest, TaskUpdateResponse, TasksDashboardSnapshot, TasksDashboardSnapshotRequest } from '../electron/sidecarProtocol.ts';
+import type { AppAgentBuildContextRequest, AppAgentCancelRequest, AppAgentInvokeToolRequest, AppAgentListToolsRequest, AppAgentResponse, AppAgentSelection, ChannelSummary, ChannelMessageRow, ListChannelMessagesRequest, ListChannelMessagesResponse, PostChannelMessageRequest, PostChannelMessageResponse, EnsureDefaultChannelRequest, EnsureDefaultChannelResponse, TaskUpdateRequest, TaskUpdateResponse, TasksDashboardSnapshot, TasksDashboardSnapshotRequest } from '../electron/sidecarProtocol.ts';
 
 import { validateBuildContextResponse, validateCancelResponse, validateInvokeToolResponse, validateListToolsResponse } from './sidecarBridgeValidation.ts';
 
@@ -67,6 +67,9 @@ interface DenDesktopSidecarRuntimeApi {
   tasksGetDashboardSnapshot(request: TasksDashboardSnapshotRequest): Promise<TasksDashboardSnapshot>;
   taskUpdate(request: TaskUpdateRequest): Promise<TaskUpdateResponse>;
   messagesGetSnapshot(request: MessagesGetSnapshotRequest): Promise<MessagesGetSnapshotResponse>;
+  listChannelMessages(request: ListChannelMessagesRequest): Promise<ListChannelMessagesResponse>;
+  postChannelMessage(request: PostChannelMessageRequest): Promise<PostChannelMessageResponse>;
+  ensureDefaultChannel(request: EnsureDefaultChannelRequest): Promise<EnsureDefaultChannelResponse>;
   documentsList(request: Record<string, unknown>): Promise<DocumentsListBridgeResponse>;
   documentGet(request: Record<string, unknown>): Promise<DocumentGetBridgeResponse>;
   documentStore(request: Record<string, unknown>): Promise<DocumentStoreBridgeResponse>;
@@ -897,6 +900,20 @@ export async function taskUpdate(request: TaskUpdateRequest): Promise<TaskUpdate
 
 export async function messagesGetSnapshot(request: MessagesGetSnapshotRequest): Promise<MessagesGetSnapshotResponse> {
   return callSidecar('messagesGetSnapshot', () => sidecarApi().messagesGetSnapshot(request));
+}
+
+// ── Channel composer (task #1541) ─────────────────────────────────────────
+
+export async function listChannelMessages(request: ListChannelMessagesRequest): Promise<ListChannelMessagesResponse> {
+  return callSidecar('listChannelMessages', () => sidecarApi().listChannelMessages(request));
+}
+
+export async function postChannelMessage(request: PostChannelMessageRequest): Promise<PostChannelMessageResponse> {
+  return callSidecar('postChannelMessage', () => sidecarApi().postChannelMessage(request));
+}
+
+export async function ensureDefaultChannel(request: EnsureDefaultChannelRequest): Promise<EnsureDefaultChannelResponse> {
+  return callSidecar('ensureDefaultChannel', () => sidecarApi().ensureDefaultChannel(request));
 }
 
 // ── Collaboration live-delivery bridge (task #1074) ─────────────────────────

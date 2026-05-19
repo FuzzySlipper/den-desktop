@@ -61,6 +61,11 @@ public static class DesktopSidecarProtocol
     // Messages tab projection (task #1092)
     public const string MessagesGetSnapshotCommand = "den_desktop.messages.get_snapshot";
 
+    // Channels message protocol (task #1182)
+    public const string ListChannelMessagesCommand = "den_desktop.channels.list_messages";
+    public const string PostChannelMessageCommand = "den_desktop.channels.post_message";
+    public const string EnsureDefaultChannelCommand = "den_desktop.channels.ensure_default";
+
     // Task update bridge command (task #1152)
     public const string TaskUpdateCommand = "den_desktop.tasks.update";
 

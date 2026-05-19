@@ -53,6 +53,9 @@ public class DesktopSidecarBridgeTests
             DesktopSidecarProtocol.TerminalTerminateCommand,
             DesktopSidecarProtocol.ConsoleListCommandsCommand,
             DesktopSidecarProtocol.ConsoleRunCommandCommand,
+            DesktopSidecarProtocol.ListChannelMessagesCommand,
+            DesktopSidecarProtocol.PostChannelMessageCommand,
+            DesktopSidecarProtocol.EnsureDefaultChannelCommand,
         }.OrderBy(c => c, StringComparer.Ordinal).ToArray();
         Assert.Equal(sortedCommands, bundle.Commands.Select(command => command.Command).ToArray());
 
