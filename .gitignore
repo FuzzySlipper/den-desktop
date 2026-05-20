@@ -13,7 +13,9 @@ TestResults/
 node_modules/
 src/DenMcp.Desktop/node_modules/
 src/DenMcp.Desktop/dist/
+src/DenMcp.Desktop/release/
 src/DenMcp.Desktop/electron-dist/
+src/DenMcp.Desktop/dist-resources/
 src/DenMcp.Desktop/src-tauri/target/
 src/DenMcp.Desktop/src-tauri/gen/
 npm-debug.log*

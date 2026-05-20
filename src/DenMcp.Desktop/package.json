@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "main": "electron-dist/main.mjs",
   "scripts": {
     "ui:dev": "vite --host 127.0.0.1 --port 1421",
     "ui:build": "tsc --noEmit && vite build",
@@ -10,7 +11,9 @@
     "electron:dev": "npm run ui:build && npm run electron:build && npx electron electron-dist/main.mjs",
     "electron:dev:hot": "npm run electron:build && node electron-launch-hot.mjs",
     "test:helpers": "node --test tests/*.test.mjs",
-    "sidecar:dev": "dotnet run --project ../DenMcp.Desktop.Sidecar --"
+    "sidecar:dev": "dotnet run --project ../DenMcp.Desktop.Sidecar --",
+    "sidecar:publish": "rm -rf dist-resources/sidecar && dotnet publish ../DenMcp.Desktop.Sidecar --configuration Release --runtime linux-x64 --self-contained true -p:PublishSingleFile=true -p:DebugType=embedded --output dist-resources/sidecar",
+    "dist:linux": "npm run ui:build && npm run electron:build && npm run sidecar:publish && npx electron-builder --linux AppImage"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.11.0",
@@ -26,8 +29,39 @@
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^5.1.0",
     "electron": "^41.3.0",
+    "electron-builder": "^26.0.0",
     "esbuild": "^0.28.0",
     "typescript": "~5.9.3",
     "vite": "^8.0.0"
+  },
+  "build": {
+    "appId": "com.den.desktop",
+    "productName": "Den Desktop",
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "../../build-assets/icon.png",
+      "category": "Utility"
+    },
+    "extraResources": [
+      {
+        "from": "dist-resources/",
+        "to": "den-desktop-resources/",
+        "filter": ["**/*"]
+      }
+    ],
+    "files": [
+      "electron-dist/**/*",
+      "dist/**/*",
+      "electron-launch-hot.mjs"
+    ],
+    "directories": {
+      "output": "release",
+      "buildResources": "../../build-assets"
+    }
   }
 }

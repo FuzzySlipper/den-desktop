@@ -40,8 +40,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const AUTH_TOKEN = crypto.randomUUID();
 const SIDECAR_PROJECT_PATH = path.resolve(__dirname, '../../DenMcp.Desktop.Sidecar/DenMcp.Desktop.Sidecar.csproj');
 const SIDECAR_CONFIG_PATH = path.resolve(app.getPath('userData'), 'sidecar');
-const SIDECAR_RELEASE_PATH = process.env.DEN_DESKTOP_SIDECAR_PATH;
-const RELEASE_ROOT = process.env.DEN_DESKTOP_RELEASE_ROOT;
+const SIDECAR_RELEASE_PATH = process.env.DEN_DESKTOP_SIDECAR_PATH
+  ?? (app.isPackaged
+    ? path.join(process.resourcesPath, 'den-desktop-resources', 'sidecar', 'DenMcp.Desktop.Sidecar')
+    : undefined);
+const RELEASE_ROOT = process.env.DEN_DESKTOP_RELEASE_ROOT
+  ?? (app.isPackaged ? process.resourcesPath : undefined);
 const RELEASE_COMMIT = process.env.DEN_DESKTOP_RELEASE_COMMIT;
 const APP_VERSION = RELEASE_COMMIT ? `0.1.0+${RELEASE_COMMIT.slice(0, 12)}` : '0.1.0-dev';
 const SIDECAR_READY_TIMEOUT_MS = 30_000;
