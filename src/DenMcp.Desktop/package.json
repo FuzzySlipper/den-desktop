@@ -1,7 +1,7 @@
 {
   "name": "den-desktop",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Den Desktop — multi-agent operator UI for Den Channels and Den server",
   "author": "Patch (https://github.com/FuzzySlipper)",
   "type": "module",
@@ -43,7 +43,9 @@
       "target": [
         {
           "target": "AppImage",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "../../build-assets/icon.png",
@@ -53,12 +55,16 @@
       {
         "from": "dist-resources/",
         "to": "den-desktop-resources/",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "../../testdata/",
         "to": "testdata/",
-        "filter": ["den-desktop-sidecar/**"]
+        "filter": [
+          "den-desktop-sidecar/**"
+        ]
       }
     ],
     "files": [
