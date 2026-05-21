@@ -54,6 +54,11 @@
         "from": "dist-resources/",
         "to": "den-desktop-resources/",
         "filter": ["**/*"]
+      },
+      {
+        "from": "../../testdata/",
+        "to": "testdata/",
+        "filter": ["den-desktop-sidecar/**"]
       }
     ],
     "files": [
