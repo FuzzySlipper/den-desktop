@@ -62,7 +62,7 @@ public sealed class DenHttpClient
     public async Task<IReadOnlyList<DenProject>> ListProjectsAsync(string baseUrl, CancellationToken cancellationToken = default)
     {
         var response = await SendAsync(
-            () => new HttpRequestMessage(HttpMethod.Get, JoinUrl(baseUrl, "/api/projects")),
+            () => new HttpRequestMessage(HttpMethod.Get, JoinUrl(baseUrl, "/api/projects/")),
             "Unable to fetch Den projects",
             cancellationToken).ConfigureAwait(false);
 
@@ -88,7 +88,7 @@ public sealed class DenHttpClient
         ArgumentNullException.ThrowIfNull(options);
         var url = BuildUrl(
             baseUrl,
-            "/api/spaces",
+            "/api/spaces/",
             new[]
             {
                 new QueryParameter("includeHidden", options.IncludeHidden ? "true" : "false"),
@@ -277,7 +277,7 @@ public sealed class DenHttpClient
             query.Add(new QueryParameter("tree", "true"));
         }
 
-        var path = $"/api/projects/{EscapePathSegment(projectId)}/tasks";
+        var path = $"/api/projects/{EscapePathSegment(projectId)}/tasks/";
         var response = await SendAsync(
             () => new HttpRequestMessage(HttpMethod.Get, BuildUrl(baseUrl, path, query)),
             "Unable to fetch Den tasks",
@@ -350,7 +350,7 @@ public sealed class DenHttpClient
             query.Add(new QueryParameter("unreadFor", unreadFor));
         }
 
-        var path = $"/api/projects/{EscapePathSegment(projectId)}/messages";
+        var path = $"/api/projects/{EscapePathSegment(projectId)}/messages/";
         var response = await SendAsync(
             () => new HttpRequestMessage(HttpMethod.Get, BuildUrl(baseUrl, path, query)),
             "Unable to fetch Den messages",
@@ -689,7 +689,7 @@ public sealed class DenHttpClient
         CancellationToken cancellationToken = default)
     {
         var path = projectId is not null
-            ? $"/api/projects/{EscapePathSegment(projectId)}/documents"
+            ? $"/api/projects/{EscapePathSegment(projectId)}/documents/"
             : "/api/documents";
         var response = await SendAsync(
             () => new HttpRequestMessage(HttpMethod.Get, JoinUrl(baseUrl, path)),
