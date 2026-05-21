@@ -61,6 +61,18 @@ interface AppShellProps {
 
 export function AppShell({ state, onStateChange, status, snapshots, sessionSnapshots, spaces, diagnostics, ipcHealth, children, activeProjectId, activeSnapshotKey, onSelectProject, onSelectSnapshot, onRunConsoleCommand, consoleCommands, consoleCommandHistory, activeProgressLines, activeProgressCommand, taskStatusFilterOverride, onTaskStatusFilterOverride }: AppShellProps) {
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [appVersion, setAppVersion] = useState<string | null>(null);
+
+  // Load app version from Electron IPC on mount
+  useEffect(() => {
+    const api = (window as any).denDesktopSidecar as Record<string, unknown> | undefined;
+    if (api && typeof api.getAppVersion === 'function') {
+      api.getAppVersion().then((v: string) => {
+        setAppVersion(v);
+        document.title = `Den Operator ${v}`;
+      }).catch(() => {});
+    }
+  }, []);
   const setState = (patch: Partial<ShellState>) => onStateChange({ ...state, ...patch });
   const activeTab = shellTabs.some((tab) => tab.id === state.activeTab) ? state.activeTab : 'operator';
   const activeTabTitle = shellTabs.find((tab) => tab.id === activeTab)?.label ?? 'operator';
@@ -261,6 +273,9 @@ export function AppShell({ state, onStateChange, status, snapshots, sessionSnaps
         channelContext={channelContext}
       />
       <StatusBar status={status} snapshots={snapshots} sessionSnapshots={sessionSnapshots} state={state} />
+      {appVersion ? (
+        <div className="version-badge" title={`Den Desktop ${appVersion}`}>{appVersion}</div>
+      ) : null}
     </div>
   );
 }

@@ -69,6 +69,9 @@ function subscribeToEvent(eventName: string, listener: (payload: unknown) => voi
  * No generic dispatch, raw token, endpoint, Node, or shell access is exposed.
  */
 contextBridge.exposeInMainWorld('denDesktopSidecar', {
+  // App metadata
+  getAppVersion: () => ipcRenderer.invoke('den-desktop:get-app-version'),
+
   // Health and capabilities
   getHealth: () => callSidecar('getHealth'),
   getCapabilities: () => callSidecar('getCapabilities'),

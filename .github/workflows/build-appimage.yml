@@ -1,0 +1,53 @@
+name: Build AppImage
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/DenMcp.Desktop/package-lock.json
+
+      - name: Install npm dependencies
+        working-directory: src/DenMcp.Desktop
+        run: npm ci
+
+      - name: Build AppImage
+        working-directory: src/DenMcp.Desktop
+        run: npm run dist:linux
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: den-desktop-appimage
+          path: src/DenMcp.Desktop/release/*.AppImage
+          if-no-files-found: error
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: src/DenMcp.Desktop/release/*.AppImage
+          generate_release_notes: true

@@ -432,6 +432,7 @@ kbd { border: var(--bw) solid var(--bd-default); border-bottom-color: var(--bd-s
 .status-segment { display: inline-flex; align-items: center; gap: var(--sp-1); }
 .status-segment.accent { color: var(--accent); }
 .status-spacer { flex: 1; }
+.version-badge { position: fixed; right: var(--sp-2); bottom: 2px; font-family: var(--font-mono); font-size: 9px; color: var(--fg-muted); opacity: 0.4; pointer-events: none; z-index: 1; }
 
 .panel {
   border: var(--bw) solid var(--bd-subtle);

@@ -249,6 +249,9 @@ function dispatchHotkeyAction(action: string): void {
 // ── IPC bridge setup ──
 
 function setupIpcBridge(): void {
+  // App version: simple IPC without sidecar dependency
+  ipcMain.handle('den-desktop:get-app-version', () => APP_VERSION);
+
   // Command dispatch: renderer calls 'den-desktop:sidecar-call' with method name + args
   ipcMain.handle(IPC_SIDECAR_CALL, async (_event, method: string, ...args: unknown[]) => {
     const allowedMethod = assertAllowedSidecarCallMethod(method);
