@@ -1,7 +1,7 @@
 {
   "name": "den-desktop",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Den Desktop — multi-agent operator UI for Den Channels and Den server",
   "author": "Patch (https://github.com/FuzzySlipper)",
   "type": "module",
