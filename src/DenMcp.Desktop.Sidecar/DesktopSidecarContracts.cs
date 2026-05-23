@@ -65,6 +65,8 @@ public static class DesktopSidecarProtocol
     public const string ListChannelMessagesCommand = "den_desktop.channels.list_messages";
     public const string PostChannelMessageCommand = "den_desktop.channels.post_message";
     public const string EnsureDefaultChannelCommand = "den_desktop.channels.ensure_default";
+    public const string ListChannelsCommand = "den_desktop.channels.list_channels";
+    public const string ListChannelActivityEventsCommand = "den_desktop.channels.list_activity_events";
 
     // Task update bridge command (task #1152)
     public const string TaskUpdateCommand = "den_desktop.tasks.update";

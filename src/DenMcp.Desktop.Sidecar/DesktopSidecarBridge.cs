@@ -145,6 +145,12 @@ public static class DesktopSidecarBridge
                 DesktopSidecarProtocol.PostChannelMessageCommand)
             .RegisterCommand<EnsureDefaultChannelRequest, EnsureDefaultChannelResponse, EnsureDefaultChannelHandler>(
                 DesktopSidecarProtocol.EnsureDefaultChannelCommand)
+            .RegisterCommand<ListChannelsRequest, ListChannelsResponse, ListChannelsHandler>(
+                DesktopSidecarProtocol.ListChannelsCommand,
+                config => { config.SupportsCancellation = true; })
+            .RegisterCommand<ListChannelActivityEventsRequest, ListChannelActivityEventsResponse, ListChannelActivityEventsHandler>(
+                DesktopSidecarProtocol.ListChannelActivityEventsCommand,
+                config => { config.SupportsCancellation = true; })
             // Documents tab (task #1147)
             .RegisterCommand<DocumentsListRequest, DocumentsListResponse, DocumentsListHandler>(
                 DesktopSidecarProtocol.DocumentsListCommand)
@@ -316,7 +322,11 @@ public static class DesktopSidecarBridge
             Schema(DesktopSidecarProtocol.EnsureDefaultChannelCommand + ".response", """"
                 {"type":"object","additionalProperties":false,"required":["id","slug","project_id","kind","was_created"],"properties":{"id":{"type":"integer"},"slug":{"type":"string"},"project_id":{"type":"string"},"kind":{"type":"string"},"was_created":{"type":"boolean"}}}
                 """"),
-            // Documents tab (task #1147)
+            // Channels list/activity schemas
+            Schema(DesktopSidecarProtocol.ListChannelsCommand + ".request", ListChannelsRequestSchema),
+            Schema(DesktopSidecarProtocol.ListChannelsCommand + ".response", ListChannelsResponseSchema),
+            Schema(DesktopSidecarProtocol.ListChannelActivityEventsCommand + ".request", ListChannelActivityEventsRequestSchema),
+            Schema(DesktopSidecarProtocol.ListChannelActivityEventsCommand + ".response", ListChannelActivityEventsResponseSchema),
             Schema(DesktopSidecarProtocol.DocumentsListCommand + ".request", DocumentsListRequestSchema),
             Schema(DesktopSidecarProtocol.DocumentsListCommand + ".response", DocumentsListResponseSchema),
             Schema(DesktopSidecarProtocol.DocumentGetCommand + ".request", DocumentGetRequestSchema),
@@ -346,6 +356,22 @@ public static class DesktopSidecarBridge
 
     private const string EmptyObjectSchema = """
         {"type":"object","additionalProperties":false}
+        """;
+
+    private const string ListChannelsRequestSchema = """
+        {"type":"object","additionalProperties":false,"required":["project_id"],"properties":{"project_id":{"type":"string"}}}
+        """;
+
+    private const string ListChannelsResponseSchema = """
+        {"type":"object","additionalProperties":false,"required":["channels"],"properties":{"channels":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","projectId","slug","kind"],"properties":{"id":{"type":"integer"},"projectId":{"type":"string"},"slug":{"type":"string"},"kind":{"type":"string"}}}}}}
+        """;
+
+    private const string ListChannelActivityEventsRequestSchema = """
+        {"type":"object","additionalProperties":false,"required":["channel_id"],"properties":{"channel_id":{"type":"integer"},"task_id":{"type":["integer","null"]},"limit":{"type":"integer"}}}
+        """;
+
+    private const string ListChannelActivityEventsResponseSchema = """
+        {"type":"object","additionalProperties":false,"required":["channel_id","events"],"properties":{"channel_id":{"type":"integer"},"events":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","channel_id","agent_identity","event_type","status","sequence","update_version"],"properties":{"id":{"type":"integer"},"channel_id":{"type":"integer"},"agent_identity":{"type":"string"},"event_type":{"type":"string"},"status":{"type":"string"},"sequence":{"type":"integer"},"update_version":{"type":"integer"},"created_at":{"type":["string","null"]}}}}}}
         """;
 
     private const string OperatorSettingsSchema = """

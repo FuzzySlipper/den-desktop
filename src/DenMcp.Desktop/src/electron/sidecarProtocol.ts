@@ -399,6 +399,40 @@ export interface EnsureDefaultChannelResponse {
   kind: string | null;
 }
 
+// List channels
+export interface ListChannelsRequest extends Record<string, JsonValue | undefined> {
+  project_id: string;
+}
+export interface ListChannelsResponse {
+  channels: ChannelSummary[];
+}
+
+// Channel activity events
+export interface ListChannelActivityEventsRequest extends Record<string, JsonValue | undefined> {
+  channel_id: number;
+  task_id?: number | null;
+  limit?: number;
+}
+export interface ListChannelActivityEventsResponse {
+  channel_id: number;
+  events: ChannelActivityEventRow[];
+}
+export interface ChannelActivityEventRow {
+  id: number;
+  channel_id: number;
+  agent_identity: string;
+  event_type: string;
+  status: string;
+  sequence: number;
+  update_version: number;
+  delivery_request_id?: string | null;
+  hermes_session_key?: string | null;
+  task_id?: number | null;
+  thread_id?: number | null;
+  anchor_message_id?: number | null;
+  created_at?: string | null;
+}
+
 // ── Documents tab (task #1147) ────────────────────────────────────────────
 
 export interface DocumentsListRequest {
@@ -772,6 +806,10 @@ export function createSidecarBridgeFacade(client: SidecarBridgeClient) {
       facade.postChannelMessage(request as JsonValue) as Promise<TResponse>,
     ensureDefaultChannel: async <TResponse = EnsureDefaultChannelResponse>(request: EnsureDefaultChannelRequest): Promise<TResponse> =>
       facade.ensureDefaultChannel(request as JsonValue) as Promise<TResponse>,
+    listChannels: async <TResponse = ListChannelsResponse>(request: ListChannelsRequest): Promise<TResponse> =>
+      facade.listChannels(request as JsonValue) as Promise<TResponse>,
+    listChannelActivityEvents: async <TResponse = ListChannelActivityEventsResponse>(request: ListChannelActivityEventsRequest): Promise<TResponse> =>
+      facade.listChannelActivityEvents(request as JsonValue) as Promise<TResponse>,
     documentsList: async <TResponse = DocumentsListResponse>(request: DocumentsListRequest): Promise<TResponse> =>
       facade.documentsList(request as unknown as JsonValue) as Promise<TResponse>,
     documentGet: async <TResponse = DocumentGetResponse>(request: DocumentGetRequest): Promise<TResponse> =>

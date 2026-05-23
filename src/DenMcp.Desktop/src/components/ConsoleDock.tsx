@@ -1,7 +1,9 @@
 import { useMemo, useRef, useState } from 'react';
 import { ShellConsoleMode, shellConsoleModes } from '../shellState';
 import { ConsoleCommandHistoryEntry, ConsoleCommandLine, ConsoleLine } from '../consoleLines';
-import type { ChannelMessageRow } from '../electron/sidecarProtocol';
+import type { ChannelMessageRow, ChannelActivityEventRow, ChannelSummary } from '../electron/sidecarProtocol';
+import { ChannelMessage } from './ChannelMessage';
+import { ChannelActivityEvent } from './ChannelActivityEvent';
 
 /** Context for channel composer integration in the console dock. */
 export interface ConsoleDockChannelContext {
@@ -11,8 +13,14 @@ export interface ConsoleDockChannelContext {
   activeChannel: { id: number; slug: string } | null;
   /** Recent channel messages to display in the scrollback. */
   messages: ChannelMessageRow[];
+  /** Recent channel activity events to display alongside messages. */
+  activityEvents: ChannelActivityEventRow[];
+  /** All available channels in the current project. */
+  channels: ChannelSummary[];
   /** Send a plain-text message to the channel. */
   onSendMessage: (body: string) => Promise<void>;
+  /** Switch to a different channel by id. */
+  onSelectChannel: (channelId: number) => void;
   /** True while a channel operation is in progress. */
   loading: boolean;
   /** Error message from the last channel operation, or null. */
@@ -64,7 +72,9 @@ export function ConsoleDock({
   const [inputValue, setInputValue] = useState('');
   const [runningCommand, setRunningCommand] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showChannelDropdown, setShowChannelDropdown] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const badgeRef = useRef<HTMLSpanElement>(null);
   const inputMode = channelContext && !inputValue.startsWith('/') ? 'filter' : detectInputMode(inputValue);
 
   // Channel mode: when channelContext is set and input doesn't start with '/',
@@ -75,7 +85,7 @@ export function ConsoleDock({
   // In-flight progress lines are rendered before the final response history.
   // Channel messages are included when channelContext is provided.
   const displayLines = useMemo(() => {
-    const result: { kind: 'diag' | 'cmd-start' | 'cmd-line' | 'cmd-end' | 'progress-line' | 'channel-msg'; data: unknown; key: string }[] = [];
+    const result: { kind: 'diag' | 'cmd-start' | 'cmd-line' | 'cmd-end' | 'progress-line' | 'channel-msg' | 'channel-activity-ev'; data: unknown; key: string }[] = [];
 
     // When showing command history, prepend history entries
     // In-flight progress lines: rendered before history when a command is running.
@@ -191,6 +201,17 @@ export function ConsoleDock({
       }
     }
 
+    // Append activity events after channel messages (latest first)
+    if (!showHistory && channelContext && channelContext.activityEvents.length > 0) {
+      for (const ev of channelContext.activityEvents) {
+        result.push({
+          kind: 'channel-activity-ev',
+          data: ev,
+          key: `ch-ev:${ev.id}`,
+        });
+      }
+    }
+
     return result;
   }, [lines, inputValue, inputMode, showHistory, consoleCommandHistory, activeProgressLines, activeProgressCommand, channelContext]);
 
@@ -251,19 +272,97 @@ export function ConsoleDock({
     }
   };
 
+  // Close dropdown on click outside
+  const handleDropdownClose = () => {
+    setShowChannelDropdown(false);
+  };
+
+  const badgeChannel = channelContext?.activeChannel
+    ? channelContext.activeChannel
+    : null;
+
   return (
     <section className="console-dock" data-mode={mode} aria-label="Console dock">
       <div className="console-header">
         <div className="console-prompt">
           <span className="console-glyph" aria-hidden="true">›_</span>
           <span className="console-target">den-mcp · operator</span>
-          {channelContext ? (
-            <span className={`console-channel-badge ${channelContext.activeChannel ? '' : 'global'}`}>
-              {channelContext.activeChannel
-                ? `[${channelContext.projectId}:#${channelContext.activeChannel.slug}]`
+          {channelContext && channelContext.channels.length > 1 ? (
+            <span
+              ref={badgeRef}
+              className={`console-channel-badge clickable ${badgeChannel ? '' : 'global'}`}
+              onClick={() => setShowChannelDropdown((prev) => !prev)}
+              title="Click to switch channel"
+              style={{ cursor: 'pointer' }}
+            >
+              {badgeChannel
+                ? `[${channelContext.projectId}:#${badgeChannel.slug}]`
+                : `[${channelContext.projectId === '_global' ? 'Global' : channelContext.projectId}]`}
+              <span style={{ marginLeft: '4px', fontSize: '0.7em' }}>▾</span>
+            </span>
+          ) : channelContext ? (
+            <span className={`console-channel-badge ${badgeChannel ? '' : 'global'}`}>
+              {badgeChannel
+                ? `[${channelContext.projectId}:#${badgeChannel.slug}]`
                 : `[${channelContext.projectId === '_global' ? 'Global' : channelContext.projectId}]`}
             </span>
           ) : null}
+          {showChannelDropdown && channelContext && channelContext.channels.length > 1 && (
+            <>
+              <div
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 999,
+                }}
+                onClick={handleDropdownClose}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  zIndex: 1000,
+                  background: '#1a1a2e',
+                  border: '1px solid #444',
+                  borderRadius: '4px',
+                  minWidth: '180px',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                }}
+              >
+                {channelContext.channels.map((ch) => {
+                  const isSelected = ch.id === (badgeChannel?.id ?? -1);
+                  return (
+                    <div
+                      key={ch.id}
+                      onClick={() => {
+                        channelContext.onSelectChannel(ch.id);
+                        setShowChannelDropdown(false);
+                      }}
+                      style={{
+                        padding: '6px 12px',
+                        cursor: 'pointer',
+                        color: isSelected ? '#fff' : '#ccc',
+                        background: isSelected ? '#333' : 'transparent',
+                        borderBottom: '1px solid #333',
+                        fontSize: '13px',
+                      }}
+                      onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = '#2a2a44'; }}
+                      onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      # {ch.slug ?? '?'}
+                      {isSelected ? <span style={{ float: 'right' }}>✓</span> : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
           {modeIndicator ? (
             <span className='console-mode-indicator'>{modeIndicator}</span>
           ) : null}
@@ -370,16 +469,18 @@ export function ConsoleDock({
 
               if (item.kind === 'channel-msg') {
                 const msg = item.data as ChannelMessageRow;
-                const timestamp = formatTimestampShort(msg.created_at);
-                const preview = msg.body.length > 120 ? msg.body.slice(0, 120) + '…' : msg.body;
-                return (
-                  <div className="console-line console-channel-msg" key={item.key}>
-                    <span className="ts">{timestamp}</span>
-                    <span className="lvl channel">ch</span>
-                    <span className="console-channel-sender">{msg.sender_identity}</span>
-                    <span>{preview}</span>
-                  </div>
+                // Determine if this is the first message today (for date separators)
+                const msgIdx = channelContext?.messages.findIndex((m) => m.id === msg.id) ?? -1;
+                const prevMsg = msgIdx > 0 ? channelContext?.messages[msgIdx - 1] : null;
+                const isFirstToday = !prevMsg || (
+                  new Date(msg.created_at).toDateString() !== new Date(prevMsg.created_at).toDateString()
                 );
+                return <ChannelMessage key={item.key} message={msg} isFirstToday={isFirstToday} />;
+              }
+
+              if (item.kind === 'channel-activity-ev') {
+                const ev = item.data as ChannelActivityEventRow;
+                return <ChannelActivityEvent key={item.key} event={ev} />;
               }
 
               // Diagnostic line

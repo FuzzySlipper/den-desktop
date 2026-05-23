@@ -105,6 +105,50 @@ public sealed class ChannelsProjectionService
         };
     }
 
+    public async Task<ListChannelsResponse> ListChannelsAsync(
+        ListChannelsRequest request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.ProjectId);
+
+        var settings = await _settingsProvider(cancellationToken).ConfigureAwait(false);
+        var baseUrl = settings.DenBaseUrl;
+
+        var channels = await _den.ListChannelsAsync(
+            baseUrl,
+            request.ProjectId,
+            cancellationToken).ConfigureAwait(false);
+
+        return new ListChannelsResponse
+        {
+            Channels = channels.ToList(),
+        };
+    }
+
+    public async Task<ListChannelActivityEventsResponse> ListChannelActivityEventsAsync(
+        ListChannelActivityEventsRequest request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var settings = await _settingsProvider(cancellationToken).ConfigureAwait(false);
+        var baseUrl = settings.DenBaseUrl;
+
+        var events = await _den.ListChannelActivityEventsAsync(
+            baseUrl,
+            request.ChannelId,
+            request.TaskId,
+            request.Limit,
+            cancellationToken).ConfigureAwait(false);
+
+        return new ListChannelActivityEventsResponse
+        {
+            ChannelId = request.ChannelId,
+            Events = events.Select(ToActivityEventRow).ToList(),
+        };
+    }
+
     private static ChannelMessageRow ToRow(DenChannelMessage message)
     {
         return new ChannelMessageRow
@@ -115,6 +159,21 @@ public sealed class ChannelsProjectionService
             SenderType = message.SenderType,
             Body = message.Body,
             CreatedAt = message.CreatedAt,
+        };
+    }
+
+    private static ChannelActivityEventRow ToActivityEventRow(DenChannelActivityEvent evt)
+    {
+        return new ChannelActivityEventRow
+        {
+            Id = evt.Id,
+            ChannelId = evt.ChannelId,
+            AgentIdentity = evt.AgentIdentity,
+            EventType = evt.EventType,
+            Status = evt.Status,
+            Sequence = evt.Sequence,
+            UpdateVersion = evt.UpdateVersion,
+            CreatedAt = evt.CreatedAt,
         };
     }
 }

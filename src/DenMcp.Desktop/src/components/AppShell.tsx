@@ -89,7 +89,7 @@ export function AppShell({ state, onStateChange, status, snapshots, sessionSnaps
   );
 
   // Channel composer state: active only for specific (non-global, non-null) project IDs.
-  const { activeChannel, messages, loading, error, sendMessage } = useChannelState(
+  const { activeChannel, channels, selectedChannelId, messages, activityEvents, loading, error, sendMessage, selectChannel } = useChannelState(
     activeProjectId && activeProjectId !== GLOBAL_PROJECT_ID ? activeProjectId : null,
   );
 
@@ -102,7 +102,10 @@ export function AppShell({ state, onStateChange, status, snapshots, sessionSnaps
         projectId: '_global',
         activeChannel: null,
         messages: [],
+        activityEvents: [],
+        channels: [],
         onSendMessage: async () => {},
+        onSelectChannel: () => {},
         loading: false,
         error: null,
       };
@@ -111,11 +114,14 @@ export function AppShell({ state, onStateChange, status, snapshots, sessionSnaps
       projectId: activeProjectId,
       activeChannel: activeChannel ? { id: activeChannel.id, slug: activeChannel.slug ?? '?' } : null,
       messages,
+      activityEvents,
+      channels,
       onSendMessage: sendMessage,
+      onSelectChannel: selectChannel,
       loading,
       error,
     };
-  }, [activeProjectId, activeChannel, messages, sendMessage, loading, error]);
+  }, [activeProjectId, activeChannel, messages, activityEvents, channels, sendMessage, selectChannel, loading, error]);
 
   const paletteCallbacks: CommandPaletteCallbacks = useMemo(
     () => ({

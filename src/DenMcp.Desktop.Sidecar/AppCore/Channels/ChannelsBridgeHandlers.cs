@@ -49,3 +49,35 @@ public sealed class EnsureDefaultChannelHandler
         return await _projection.EnsureDefaultChannelAsync(request, cancellationToken).ConfigureAwait(false);
     }
 }
+
+public sealed class ListChannelsHandler
+    : IBridgeCommandHandler<ListChannelsRequest, ListChannelsResponse>
+{
+    private readonly ChannelsProjectionService _projection;
+
+    public ListChannelsHandler(ChannelsProjectionService projection) => _projection = projection;
+
+    public async ValueTask<ListChannelsResponse?> HandleAsync(
+        ListChannelsRequest request,
+        BridgeRequestContext context,
+        CancellationToken cancellationToken)
+    {
+        return await _projection.ListChannelsAsync(request, cancellationToken).ConfigureAwait(false);
+    }
+}
+
+public sealed class ListChannelActivityEventsHandler
+    : IBridgeCommandHandler<ListChannelActivityEventsRequest, ListChannelActivityEventsResponse>
+{
+    private readonly ChannelsProjectionService _projection;
+
+    public ListChannelActivityEventsHandler(ChannelsProjectionService projection) => _projection = projection;
+
+    public async ValueTask<ListChannelActivityEventsResponse?> HandleAsync(
+        ListChannelActivityEventsRequest request,
+        BridgeRequestContext context,
+        CancellationToken cancellationToken)
+    {
+        return await _projection.ListChannelActivityEventsAsync(request, cancellationToken).ConfigureAwait(false);
+    }
+}

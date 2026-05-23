@@ -97,3 +97,63 @@ public sealed record EnsureDefaultChannelResponse
     [JsonPropertyName("was_created")]
     public bool WasCreated { get; init; }
 }
+
+public sealed record ListChannelsRequest
+{
+    [JsonPropertyName("project_id")]
+    public required string ProjectId { get; init; }
+}
+
+public sealed record ListChannelsResponse
+{
+    [JsonPropertyName("channels")]
+    public required IReadOnlyList<DenChannelSummary> Channels { get; init; }
+}
+
+public sealed record ListChannelActivityEventsRequest
+{
+    [JsonPropertyName("channel_id")]
+    public long ChannelId { get; init; }
+
+    [JsonPropertyName("task_id")]
+    public long? TaskId { get; init; }
+
+    [JsonPropertyName("limit")]
+    public int Limit { get; init; } = 50;
+}
+
+public sealed record ListChannelActivityEventsResponse
+{
+    [JsonPropertyName("channel_id")]
+    public long ChannelId { get; init; }
+
+    [JsonPropertyName("events")]
+    public required IReadOnlyList<ChannelActivityEventRow> Events { get; init; }
+}
+
+public sealed record ChannelActivityEventRow
+{
+    [JsonPropertyName("id")]
+    public long Id { get; init; }
+
+    [JsonPropertyName("channel_id")]
+    public long ChannelId { get; init; }
+
+    [JsonPropertyName("agent_identity")]
+    public string AgentIdentity { get; init; } = string.Empty;
+
+    [JsonPropertyName("event_type")]
+    public string EventType { get; init; } = string.Empty;
+
+    [JsonPropertyName("status")]
+    public string Status { get; init; } = string.Empty;
+
+    [JsonPropertyName("sequence")]
+    public long Sequence { get; init; }
+
+    [JsonPropertyName("update_version")]
+    public long UpdateVersion { get; init; }
+
+    [JsonPropertyName("created_at")]
+    public string? CreatedAt { get; init; }
+}
