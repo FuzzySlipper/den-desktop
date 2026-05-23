@@ -4,6 +4,12 @@ namespace DenMcp.Desktop.Sidecar;
 
 public sealed record OperatorSettings
 {
+    /// <summary>Default Den Core REST base URL used during local development.
+    /// The Den MCP/Core HTTP adapter at :5199 has a /health endpoint but does not
+    /// serve the Desktop REST API surface (/api/projects/, /api/spaces/, etc.).
+    /// For local development, run a local Core REST server/proxy at :5199.
+    /// For the deployed den-srv environment, use:
+    /// http://192.168.1.10:18080/den-core-api</summary>
     public const string DefaultDenBaseUrl = "http://localhost:5199";
     public const string DefaultSourceDisplayName = "Den Desktop";
     public const int DefaultPollIntervalSeconds = 30;

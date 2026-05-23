@@ -265,7 +265,7 @@ public class OperatorRuntimeServiceTests
         await service.Runtime.RefreshAsync();
 
         Assert.Contains(service.Http.Requests, request =>
-            request.Uri == "http://localhost:5199/api/spaces?includeHidden=false&includeArchived=false");
+            request.Uri == "http://localhost:5199/api/spaces/?includeHidden=false&includeArchived=false");
     }
 
     [Fact]

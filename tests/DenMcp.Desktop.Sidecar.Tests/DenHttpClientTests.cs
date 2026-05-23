@@ -29,7 +29,7 @@ public class DenHttpClientTests
         Assert.Equal("GET", handler.Requests[0].Method);
         Assert.Equal("http://den.test/health", handler.Requests[0].Uri);
         Assert.Equal("GET", handler.Requests[1].Method);
-        Assert.Equal("http://den.test/api/projects", handler.Requests[1].Uri);
+        Assert.Equal("http://den.test/api/projects/", handler.Requests[1].Uri);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class DenHttpClientTests
         Assert.Equal("assistant-1", spaces[1].Id);
         Assert.Equal("assistant", spaces[1].Kind);
         Assert.Equal("GET", handler.Requests[0].Method);
-        Assert.Equal("http://den.test/api/spaces?includeHidden=true&includeArchived=true", handler.Requests[0].Uri);
+        Assert.Equal("http://den.test/api/spaces/?includeHidden=true&includeArchived=true", handler.Requests[0].Uri);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class DenHttpClientTests
             IncludeArchived = true,
         });
 
-        Assert.Equal("http://den.test/api/spaces?includeHidden=false&includeArchived=true", handler.Requests[0].Uri);
+        Assert.Equal("http://den.test/api/spaces/?includeHidden=false&includeArchived=true", handler.Requests[0].Uri);
     }
 
     [Fact]
@@ -225,6 +225,35 @@ public class DenHttpClientTests
 
         Assert.Equal(TimeSpan.FromSeconds(8), httpClient.Timeout);
         Assert.Equal(DenHttpClient.DefaultTimeout, httpClient.Timeout);
+    }
+
+    [Fact]
+    public async Task PathPrefixInBaseUrl_IsPreservedInConstructedRequests()
+    {
+        var handler = new RecordingHandler(
+            JsonResponse("{}"),
+            JsonResponse("[]"),
+            JsonResponse("{}"),
+            JsonResponse("[]"));
+        var client = new DenHttpClient(new HttpClient(handler));
+
+        // Base URL without trailing slash — path prefix should be preserved
+        var baseWithoutSlash = "http://den.test/den-core-api";
+        var health1 = await client.HealthAsync(baseWithoutSlash);
+        var projects1 = await client.ListProjectsAsync(baseWithoutSlash);
+
+        Assert.Equal("GET", handler.Requests[0].Method);
+        Assert.Equal("http://den.test/den-core-api/health", handler.Requests[0].Uri);
+        Assert.Equal("GET", handler.Requests[1].Method);
+        Assert.Equal("http://den.test/den-core-api/api/projects/", handler.Requests[1].Uri);
+
+        // Base URL with trailing slash — same results
+        var baseWithSlash = "http://den.test/den-core-api/";
+        var health2 = await client.HealthAsync(baseWithSlash);
+        var projects2 = await client.ListProjectsAsync(baseWithSlash);
+
+        Assert.Equal("http://den.test/den-core-api/health", handler.Requests[2].Uri);
+        Assert.Equal("http://den.test/den-core-api/api/projects/", handler.Requests[3].Uri);
     }
 
     private static DesktopGitSnapshotRequest GitSnapshot()

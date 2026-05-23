@@ -55,7 +55,7 @@ public class MessagesProjectionTests
         Assert.Equal("Looking good", third.ContentSummary);
 
         // Verify request URL
-        Assert.Contains(handler.Requests, r => r.Uri == "http://den.test/api/projects/den-mcp/messages?limit=20");
+        Assert.Contains(handler.Requests, r => r.Uri == "http://den.test/api/projects/den-mcp/messages/?limit=20");
     }
 
     [Fact]

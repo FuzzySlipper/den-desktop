@@ -47,7 +47,7 @@ const SIDECAR_RELEASE_PATH = process.env.DEN_DESKTOP_SIDECAR_PATH
 const RELEASE_ROOT = process.env.DEN_DESKTOP_RELEASE_ROOT
   ?? (app.isPackaged ? process.resourcesPath : undefined);
 const RELEASE_COMMIT = process.env.DEN_DESKTOP_RELEASE_COMMIT;
-const APP_VERSION = RELEASE_COMMIT ? `0.1.0+${RELEASE_COMMIT.slice(0, 12)}` : '0.1.0-dev';
+const APP_VERSION = RELEASE_COMMIT ? `${app.getVersion()}+${RELEASE_COMMIT.slice(0, 12)}` : app.getVersion();
 const SIDECAR_READY_TIMEOUT_MS = 30_000;
 
 // ── State ──

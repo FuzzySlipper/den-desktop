@@ -14,13 +14,21 @@ Den Core, Den MCP tools, server HTTP APIs, tasks, messages, docs, reviews, and P
 
 ## Configure Den server
 
-Default Den URL: `http://localhost:5199`.
+Default Den URL (dev): `http://localhost:5199`.
 
-To point the app at den-srv, use the in-app settings UI or sidecar settings and set:
+This is the Den MCP/Core adapter — it exposes only `/health` with no REST API surface. For full functionality, a local Den Core REST server or proxy must be running.
+
+Deployed Den Core REST facade on den-srv:
 
 ```text
-http://192.168.1.10:5199
+http://192.168.1.10:18080/den-core-api
 ```
+
+This is the correct URL for the production Den Core REST API. Set it via the in-app settings UI or sidecar settings.
+
+The URL includes the `/den-core-api` path prefix — the sidecar handles this correctly.
+
+The Den Channels web UI is at the same host:port at `/` (e.g. `http://192.168.1.10:18080/`).
 
 Settings are stored in the Electron app user-data sidecar path and in the standalone `~/.config/den-desktop` conventions used by the sidecar.
 

@@ -62,7 +62,7 @@ public class TasksDashboardProjectionTests
         Assert.Contains(snapshot.Tasks.Single(task => task.Id == 1001).SessionChips, chip => chip.Capabilities.CanOpenExternalAttach);
         Assert.False(snapshot.Freshness.IsPartial);
         Assert.Contains(snapshot.Freshness.Warnings, warning => warning.Contains("Merge eligibility", StringComparison.Ordinal));
-        Assert.Contains(handler.Requests, request => request.Uri == "http://den.test/api/projects/den-mcp/tasks?parentId=900");
+        Assert.Contains(handler.Requests, request => request.Uri == "http://den.test/api/projects/den-mcp/tasks/?parentId=900");
     }
 
     private static HttpResponseMessage Detail(long id, string title, string status, string dependencies, string reviewRounds)
