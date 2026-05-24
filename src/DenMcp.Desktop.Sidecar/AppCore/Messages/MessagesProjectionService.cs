@@ -41,6 +41,7 @@ public sealed class MessagesProjectionService
         var errors = new List<string>();
         var settings = await _settingsProvider(cancellationToken).ConfigureAwait(false);
         var baseUrl = settings.DenBaseUrl;
+        var channelsBaseUrl = settings.ChannelsBaseUrl;
 
         // Determine effective limit — clamp to [1, 100]
         var limit = Math.Clamp(request.Limit, 1, 100);
@@ -78,7 +79,7 @@ public sealed class MessagesProjectionService
         }
 
         var channels = await TryAsync(
-            () => _den.ListChannelsAsync(baseUrl, request.ProjectId, cancellationToken),
+            () => _den.ListChannelsAsync(channelsBaseUrl, request.ProjectId, cancellationToken),
             errors,
             "Unable to load Channels activity lanes",
             Array.Empty<DenChannelSummary>()).ConfigureAwait(false);
@@ -89,7 +90,7 @@ public sealed class MessagesProjectionService
         var activityEvents = channel is null
             ? Array.Empty<DenChannelActivityEvent>()
             : await TryAsync(
-                () => _den.ListChannelActivityEventsAsync(baseUrl, channel.Id, request.TaskId, 50, cancellationToken),
+                () => _den.ListChannelActivityEventsAsync(channelsBaseUrl, channel.Id, request.TaskId, 50, cancellationToken),
                 errors,
                 "Unable to load Channels activity events",
                 Array.Empty<DenChannelActivityEvent>()).ConfigureAwait(false);

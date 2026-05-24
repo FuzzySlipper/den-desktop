@@ -34,7 +34,7 @@ public sealed class ChannelsProjectionService
         ArgumentException.ThrowIfNullOrWhiteSpace(request.ProjectId);
 
         var settings = await _settingsProvider(cancellationToken).ConfigureAwait(false);
-        var baseUrl = settings.DenBaseUrl;
+        var baseUrl = settings.ChannelsBaseUrl;
 
         var messages = await _den.ListChannelMessagesAsync(
             baseUrl,
@@ -61,7 +61,7 @@ public sealed class ChannelsProjectionService
         ArgumentException.ThrowIfNullOrWhiteSpace(request.SenderIdentity);
 
         var settings = await _settingsProvider(cancellationToken).ConfigureAwait(false);
-        var baseUrl = settings.DenBaseUrl;
+        var baseUrl = settings.ChannelsBaseUrl;
 
         var message = await _den.PostChannelMessageAsync(
             baseUrl,
@@ -88,7 +88,7 @@ public sealed class ChannelsProjectionService
         ArgumentException.ThrowIfNullOrWhiteSpace(request.ProjectId);
 
         var settings = await _settingsProvider(cancellationToken).ConfigureAwait(false);
-        var baseUrl = settings.DenBaseUrl;
+        var baseUrl = settings.ChannelsBaseUrl;
 
         var result = await _den.EnsureProjectDefaultChannelAsync(
             baseUrl,
@@ -113,7 +113,7 @@ public sealed class ChannelsProjectionService
         ArgumentException.ThrowIfNullOrWhiteSpace(request.ProjectId);
 
         var settings = await _settingsProvider(cancellationToken).ConfigureAwait(false);
-        var baseUrl = settings.DenBaseUrl;
+        var baseUrl = settings.ChannelsBaseUrl;
 
         var channels = await _den.ListChannelsAsync(
             baseUrl,
@@ -133,7 +133,7 @@ public sealed class ChannelsProjectionService
         ArgumentNullException.ThrowIfNull(request);
 
         var settings = await _settingsProvider(cancellationToken).ConfigureAwait(false);
-        var baseUrl = settings.DenBaseUrl;
+        var baseUrl = settings.ChannelsBaseUrl;
 
         var events = await _den.ListChannelActivityEventsAsync(
             baseUrl,

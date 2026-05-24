@@ -11,6 +11,7 @@ public sealed record OperatorSettings
     /// For the deployed den-srv environment, use:
     /// http://192.168.1.10:18080/den-core-api</summary>
     public const string DefaultDenBaseUrl = "http://localhost:5199";
+    public const string DefaultChannelsGardenBaseUrl = "http://localhost:5199";
     public const string DefaultSourceDisplayName = "Den Desktop";
     public const int DefaultPollIntervalSeconds = 30;
     public const int DefaultMaxChangedFiles = 200;
@@ -24,6 +25,24 @@ public sealed record OperatorSettings
     [JsonRequired]
     [JsonPropertyName("denBaseUrl")]
     public string DenBaseUrl { get; init; } = DefaultDenBaseUrl;
+
+    /// <summary>Channels Garden base URL, derived from DenBaseUrl by stripping the path.
+    /// Channels REST endpoints live at the Den Channels Garden server root,
+    /// not under the /den-core-api path prefix that the Core REST facade serves.</summary>
+    [JsonIgnore]
+    public string ChannelsBaseUrl
+    {
+        get
+        {
+            var url = (DenBaseUrl ?? DefaultDenBaseUrl).Trim();
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                // Strip path — channels live at the server root, not under /den-core-api
+                return uri.GetLeftPart(UriPartial.Authority);
+            }
+            return DefaultChannelsGardenBaseUrl;
+        }
+    }
 
     [JsonRequired]
     [JsonPropertyName("sourceInstanceId")]
