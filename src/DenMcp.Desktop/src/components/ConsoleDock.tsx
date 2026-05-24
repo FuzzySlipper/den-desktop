@@ -1,9 +1,10 @@
 import { useMemo, useRef, useState } from 'react';
 import { ShellConsoleMode, shellConsoleModes } from '../shellState';
 import { ConsoleCommandHistoryEntry, ConsoleCommandLine, ConsoleLine } from '../consoleLines';
-import type { ChannelMessageRow, ChannelActivityEventRow, ChannelSummary } from '../electron/sidecarProtocol';
+import type { ChannelMessageRow, ChannelActivityEventRow, ChannelSummary, ChannelMemberRow } from '../electron/sidecarProtocol';
 import { ChannelMessage } from './ChannelMessage';
 import { ChannelActivityEvent } from './ChannelActivityEvent';
+import { ChannelMembers } from './ChannelMembers';
 
 /** Context for channel composer integration in the console dock. */
 export interface ConsoleDockChannelContext {
@@ -15,6 +16,8 @@ export interface ConsoleDockChannelContext {
   messages: ChannelMessageRow[];
   /** Recent channel activity events to display alongside messages. */
   activityEvents: ChannelActivityEventRow[];
+  /** Channel agent members (from Den Channels Gateway). */
+  members: ChannelMemberRow[];
   /** All available channels in the current project. */
   channels: ChannelSummary[];
   /** Send a plain-text message to the channel. */
@@ -73,6 +76,7 @@ export function ConsoleDock({
   const [runningCommand, setRunningCommand] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showChannelDropdown, setShowChannelDropdown] = useState(false);
+  const [showMembers, setShowMembers] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
   const inputMode = channelContext && !inputValue.startsWith('/') ? 'filter' : detectInputMode(inputValue);
@@ -85,7 +89,7 @@ export function ConsoleDock({
   // In-flight progress lines are rendered before the final response history.
   // Channel messages are included when channelContext is provided.
   const displayLines = useMemo(() => {
-    const result: { kind: 'diag' | 'cmd-start' | 'cmd-line' | 'cmd-end' | 'progress-line' | 'channel-msg' | 'channel-activity-ev'; data: unknown; key: string }[] = [];
+    const result: { kind: 'diag' | 'cmd-start' | 'cmd-line' | 'cmd-end' | 'progress-line' | 'channel-msg' | 'channel-activity-ev' | 'ch-members'; data: unknown; key: string }[] = [];
 
     // When showing command history, prepend history entries
     // In-flight progress lines: rendered before history when a command is running.
@@ -212,8 +216,17 @@ export function ConsoleDock({
       }
     }
 
+    // Show member list when toggled
+    if (showMembers && channelContext && channelContext.members.length > 0) {
+      result.push({
+        kind: 'ch-members',
+        data: channelContext.members,
+        key: 'ch-members',
+      });
+    }
+
     return result;
-  }, [lines, inputValue, inputMode, showHistory, consoleCommandHistory, activeProgressLines, activeProgressCommand, channelContext]);
+  }, [lines, inputValue, inputMode, showHistory, consoleCommandHistory, activeProgressLines, activeProgressCommand, channelContext, showMembers]);
 
   const modeIndicator = inputMode === 'palette' ? '[command]' : null;
 
@@ -397,6 +410,16 @@ export function ConsoleDock({
               ⌕
             </button>
           ) : null}
+          {channelContext && channelContext.members.length > 0 ? (
+            <button
+              type="button"
+              className={showMembers ? 'active' : ''}
+              title={showMembers ? 'Hide agents' : 'Show agents in channel'}
+              onClick={() => setShowMembers((prev) => !prev)}
+            >
+              🤖
+            </button>
+          ) : null}
           {shellConsoleModes.map((option) => (
             <button
               key={option}
@@ -481,6 +504,11 @@ export function ConsoleDock({
               if (item.kind === 'channel-activity-ev') {
                 const ev = item.data as ChannelActivityEventRow;
                 return <ChannelActivityEvent key={item.key} event={ev} />;
+              }
+
+              if (item.kind === 'ch-members') {
+                const members = item.data as ChannelMemberRow[];
+                return <ChannelMembers key={item.key} members={members} />;
               }
 
               // Diagnostic line

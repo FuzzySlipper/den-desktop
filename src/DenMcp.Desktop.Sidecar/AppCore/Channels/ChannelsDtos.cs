@@ -157,3 +157,54 @@ public sealed record ChannelActivityEventRow
     [JsonPropertyName("created_at")]
     public string? CreatedAt { get; init; }
 }
+
+public sealed record ListChannelMembersRequest
+{
+    [JsonPropertyName("project_id")]
+    public required string ProjectId { get; init; }
+
+    [JsonPropertyName("channel_id")]
+    public long ChannelId { get; init; }
+}
+
+public sealed record ListChannelMembersResponse
+{
+    [JsonPropertyName("members")]
+    public required IReadOnlyList<ChannelMemberRow> Members { get; init; }
+}
+
+public sealed record ChannelMemberRow
+{
+    [JsonPropertyName("id")]
+    public long Id { get; init; }
+
+    [JsonPropertyName("member_type")]
+    public string MemberType { get; init; } = string.Empty;
+
+    [JsonPropertyName("member_identity")]
+    public string MemberIdentity { get; init; } = string.Empty;
+
+    [JsonPropertyName("membership_status")]
+    public string MembershipStatus { get; init; } = string.Empty;
+
+    [JsonPropertyName("wake_policy")]
+    public string? WakePolicy { get; init; }
+
+    [JsonPropertyName("can_send")]
+    public bool CanSend { get; init; }
+
+    [JsonPropertyName("can_react")]
+    public bool CanReact { get; init; }
+
+    [JsonPropertyName("can_invite")]
+    public bool CanInvite { get; init; }
+
+    [JsonPropertyName("cooldown_seconds")]
+    public int CooldownSeconds { get; init; }
+
+    [JsonPropertyName("max_auto_replies_per_window")]
+    public int MaxAutoRepliesPerWindow { get; init; }
+
+    [JsonPropertyName("settings_label")]
+    public string? SettingsLabel { get; init; }
+}

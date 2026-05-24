@@ -55,6 +55,7 @@ public class DesktopSidecarBridgeTests
             DesktopSidecarProtocol.ConsoleRunCommandCommand,
             DesktopSidecarProtocol.ListChannelActivityEventsCommand,
             DesktopSidecarProtocol.ListChannelsCommand,
+            DesktopSidecarProtocol.ListChannelMembersCommand,
             DesktopSidecarProtocol.ListChannelMessagesCommand,
             DesktopSidecarProtocol.PostChannelMessageCommand,
             DesktopSidecarProtocol.EnsureDefaultChannelCommand,

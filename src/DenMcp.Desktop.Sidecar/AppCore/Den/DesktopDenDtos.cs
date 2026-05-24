@@ -816,3 +816,59 @@ public sealed record DenTaskUpdateRequest
     [JsonPropertyName("parent_id")]
     public int? ParentId { get; init; }
 }
+
+// ── Channel Members API DTOs ──────────────────────────────────────────────
+
+public sealed record DenChannelGatewayMember
+{
+    [JsonPropertyName("id")]
+    public long Id { get; init; }
+
+    [JsonPropertyName("memberType")]
+    public string MemberType { get; init; } = string.Empty;
+
+    [JsonPropertyName("memberIdentity")]
+    public string MemberIdentity { get; init; } = string.Empty;
+
+    [JsonPropertyName("membershipStatus")]
+    public string MembershipStatus { get; init; } = string.Empty;
+
+    [JsonPropertyName("wakePolicy")]
+    public string? WakePolicy { get; init; }
+
+    [JsonPropertyName("canSend")]
+    public bool CanSend { get; init; }
+
+    [JsonPropertyName("canReact")]
+    public bool CanReact { get; init; }
+
+    [JsonPropertyName("canInvite")]
+    public bool CanInvite { get; init; }
+
+    [JsonPropertyName("cooldownSeconds")]
+    public int CooldownSeconds { get; init; }
+
+    [JsonPropertyName("maxAutoRepliesPerWindow")]
+    public int MaxAutoRepliesPerWindow { get; init; }
+
+    [JsonPropertyName("settingsLabel")]
+    public string? SettingsLabel { get; init; }
+}
+
+public sealed record DenChannelMembersResponse
+{
+    [JsonPropertyName("channelId")]
+    public long ChannelId { get; init; }
+
+    [JsonPropertyName("channelSlug")]
+    public string ChannelSlug { get; init; } = string.Empty;
+
+    [JsonPropertyName("channelKind")]
+    public string ChannelKind { get; init; } = string.Empty;
+
+    [JsonPropertyName("projectId")]
+    public string ProjectId { get; init; } = string.Empty;
+
+    [JsonPropertyName("members")]
+    public required IReadOnlyList<DenChannelGatewayMember> Members { get; init; }
+}

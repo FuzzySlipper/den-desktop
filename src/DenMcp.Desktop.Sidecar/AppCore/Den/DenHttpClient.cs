@@ -438,6 +438,37 @@ public sealed class DenHttpClient
         }
     }
 
+    public async Task<IReadOnlyList<DenChannelGatewayMember>> ListChannelMembersAsync(
+        string channelsBaseUrl,
+        long channelId,
+        CancellationToken cancellationToken = default)
+    {
+        var url = BuildUrl(
+            channelsBaseUrl,
+            "/api/gateway/memberships",
+            new[] { new QueryParameter("channelId", channelId.ToString(System.Globalization.CultureInfo.InvariantCulture)) });
+        var response = await SendAsync(
+            () => new HttpRequestMessage(HttpMethod.Get, url),
+            "Unable to fetch Den Channels members",
+            cancellationToken).ConfigureAwait(false);
+
+        using (response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await ReadBodyAsync(response, cancellationToken).ConfigureAwait(false);
+                throw new DenHttpClientException($"Den Channels members request returned HTTP {(int)response.StatusCode}: {body}");
+            }
+
+            var envelope = await ReadJsonAsync<DenChannelMembersResponse>(
+                response,
+                "Unable to parse Den Channels members response",
+                cancellationToken).ConfigureAwait(false);
+
+            return envelope.Members;
+        }
+    }
+
     public async Task<IReadOnlyList<DenChannelMessage>> ListChannelMessagesAsync(
         string baseUrl,
         long channelId,

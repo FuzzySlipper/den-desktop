@@ -5,8 +5,9 @@ import {
   ensureDefaultChannel,
   listChannels,
   listChannelActivityEvents,
+  listChannelMembers,
 } from './sidecarBridgeApi';
-import type { ChannelSummary, ChannelMessageRow, ChannelActivityEventRow } from '../electron/sidecarProtocol';
+import type { ChannelSummary, ChannelMemberRow, ChannelMessageRow, ChannelActivityEventRow } from '../electron/sidecarProtocol';
 
 /** How often to poll for new messages and activity events (ms). */
 const POLL_INTERVAL_MS = 30_000;
@@ -18,6 +19,8 @@ export interface ChannelState {
   messages: ChannelMessageRow[];
   /** Recent channel activity events (agent runs, deliveries, etc.). */
   activityEvents: ChannelActivityEventRow[];
+  /** Channel agent members (from Den Channels Gateway). */
+  members: ChannelMemberRow[];
   /** All available channels in the current project. */
   channels: ChannelSummary[];
   /** The currently selected channel id, or null. */
@@ -38,11 +41,12 @@ export interface ChannelState {
  * Load both messages and activity events for a channel.
  */
 async function loadChannelData(channelId: number) {
-  const [msgResult, evResult] = await Promise.all([
+  const [msgResult, evResult, memberResult] = await Promise.all([
     listChannelMessages({ channel_id: channelId, limit: 50 }),
     listChannelActivityEvents({ channel_id: channelId, limit: 30 }),
+    listChannelMembers({ channel_id: channelId, project_id: '' }).catch(() => ({ members: [] })),
   ]);
-  return { messages: msgResult.messages, activityEvents: evResult.events };
+  return { messages: msgResult.messages, activityEvents: evResult.events, members: memberResult.members };
 }
 
 /**
@@ -58,6 +62,7 @@ export function useChannelState(projectId: string | null): ChannelState {
   const [activeChannel, setActiveChannel] = useState<ChannelSummary | null>(null);
   const [messages, setMessages] = useState<ChannelMessageRow[]>([]);
   const [activityEvents, setActivityEvents] = useState<ChannelActivityEventRow[]>([]);
+  const [members, setMembers] = useState<ChannelMemberRow[]>([]);
   const [channels, setChannels] = useState<ChannelSummary[]>([]);
   const [selectedChannelId, setSelectedChannelId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -74,6 +79,7 @@ export function useChannelState(projectId: string | null): ChannelState {
       const data = await loadChannelData(chId);
       setMessages(data.messages);
       setActivityEvents(data.activityEvents);
+      setMembers(data.members);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -87,6 +93,7 @@ export function useChannelState(projectId: string | null): ChannelState {
       setActiveChannel(null);
       setMessages([]);
       setActivityEvents([]);
+      setMembers([]);
       setChannels([]);
       setSelectedChannelId(null);
       channelIdRef.current = null;
@@ -114,11 +121,12 @@ export function useChannelState(projectId: string | null): ChannelState {
         setSelectedChannelId(defaultChannel.id);
         channelIdRef.current = defaultChannel.id;
 
-        // Load messages + activity events for the selected (default) channel
+        // Load messages + activity events + members for the selected (default) channel
         const data = await loadChannelData(defaultChannel.id);
         if (!cancelled) {
           setMessages(data.messages);
           setActivityEvents(data.activityEvents);
+          setMembers(data.members);
         }
       } catch (err) {
         if (!cancelled) {
@@ -140,6 +148,7 @@ export function useChannelState(projectId: string | null): ChannelState {
       loadChannelData(chId).then((data) => {
         setMessages(data.messages);
         setActivityEvents(data.activityEvents);
+        setMembers(data.members);
       }).catch(() => {
         // Silently swallow poll errors; UI error state is set by explicit operations
       });
@@ -187,6 +196,7 @@ export function useChannelState(projectId: string | null): ChannelState {
       const data = await loadChannelData(channelId);
       setMessages(data.messages);
       setActivityEvents(data.activityEvents);
+      setMembers(data.members);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -198,6 +208,7 @@ export function useChannelState(projectId: string | null): ChannelState {
     activeChannel,
     messages,
     activityEvents,
+    members,
     channels,
     selectedChannelId,
     loading,

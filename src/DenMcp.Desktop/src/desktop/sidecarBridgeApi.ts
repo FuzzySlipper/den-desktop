@@ -1,4 +1,4 @@
-import type { AppAgentBuildContextRequest, AppAgentCancelRequest, AppAgentInvokeToolRequest, AppAgentListToolsRequest, AppAgentResponse, AppAgentSelection, ChannelSummary, ChannelMessageRow, ChannelActivityEventRow, ListChannelMessagesRequest, ListChannelMessagesResponse, ListChannelsRequest, ListChannelsResponse, ListChannelActivityEventsRequest, ListChannelActivityEventsResponse, PostChannelMessageRequest, PostChannelMessageResponse, EnsureDefaultChannelRequest, EnsureDefaultChannelResponse, TaskUpdateRequest, TaskUpdateResponse, TasksDashboardSnapshot, TasksDashboardSnapshotRequest } from '../electron/sidecarProtocol.ts';
+import type { AppAgentBuildContextRequest, AppAgentCancelRequest, AppAgentInvokeToolRequest, AppAgentListToolsRequest, AppAgentResponse, AppAgentSelection, ChannelSummary, ChannelMemberRow, ChannelMessageRow, ChannelActivityEventRow, ListChannelMessagesRequest, ListChannelMessagesResponse, ListChannelsRequest, ListChannelsResponse, ListChannelMembersRequest, ListChannelMembersResponse, ListChannelActivityEventsRequest, ListChannelActivityEventsResponse, PostChannelMessageRequest, PostChannelMessageResponse, EnsureDefaultChannelRequest, EnsureDefaultChannelResponse, TaskUpdateRequest, TaskUpdateResponse, TasksDashboardSnapshot, TasksDashboardSnapshotRequest } from '../electron/sidecarProtocol.ts';
 
 import { validateBuildContextResponse, validateCancelResponse, validateInvokeToolResponse, validateListToolsResponse } from './sidecarBridgeValidation.ts';
 
@@ -72,6 +72,7 @@ interface DenDesktopSidecarRuntimeApi {
   ensureDefaultChannel(request: EnsureDefaultChannelRequest): Promise<EnsureDefaultChannelResponse>;
   listChannels(request: ListChannelsRequest): Promise<ListChannelsResponse>;
   listChannelActivityEvents(request: ListChannelActivityEventsRequest): Promise<ListChannelActivityEventsResponse>;
+  listChannelMembers(request: ListChannelMembersRequest): Promise<ListChannelMembersResponse>;
   documentsList(request: Record<string, unknown>): Promise<DocumentsListBridgeResponse>;
   documentGet(request: Record<string, unknown>): Promise<DocumentGetBridgeResponse>;
   documentStore(request: Record<string, unknown>): Promise<DocumentStoreBridgeResponse>;
@@ -926,6 +927,10 @@ export async function listChannels(request: ListChannelsRequest): Promise<ListCh
 
 export async function listChannelActivityEvents(request: ListChannelActivityEventsRequest): Promise<ListChannelActivityEventsResponse> {
   return callSidecar('listChannelActivityEvents', () => sidecarApi().listChannelActivityEvents(request));
+}
+
+export async function listChannelMembers(request: ListChannelMembersRequest): Promise<ListChannelMembersResponse> {
+  return callSidecar('listChannelMembers', () => sidecarApi().listChannelMembers(request));
 }
 
 // ── Collaboration live-delivery bridge (task #1074) ─────────────────────────

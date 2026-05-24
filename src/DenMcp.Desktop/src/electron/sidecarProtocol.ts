@@ -433,6 +433,30 @@ export interface ChannelActivityEventRow {
   created_at?: string | null;
 }
 
+// Channel members (Den Channels Gateway)
+export interface ChannelMemberRow {
+  id: number;
+  member_type: string;
+  member_identity: string;
+  membership_status: string;
+  wake_policy?: string | null;
+  can_send: boolean;
+  can_react: boolean;
+  can_invite: boolean;
+  cooldown_seconds: number;
+  max_auto_replies_per_window: number;
+  settings_label?: string | null;
+}
+
+export interface ListChannelMembersRequest extends Record<string, JsonValue | undefined> {
+  project_id: string;
+  channel_id: number;
+}
+
+export interface ListChannelMembersResponse {
+  members: ChannelMemberRow[];
+}
+
 // ── Documents tab (task #1147) ────────────────────────────────────────────
 
 export interface DocumentsListRequest {
@@ -810,6 +834,8 @@ export function createSidecarBridgeFacade(client: SidecarBridgeClient) {
       facade.listChannels(request as JsonValue) as Promise<TResponse>,
     listChannelActivityEvents: async <TResponse = ListChannelActivityEventsResponse>(request: ListChannelActivityEventsRequest): Promise<TResponse> =>
       facade.listChannelActivityEvents(request as JsonValue) as Promise<TResponse>,
+    listChannelMembers: async <TResponse = ListChannelMembersResponse>(request: ListChannelMembersRequest): Promise<TResponse> =>
+      facade.listChannelMembers(request as JsonValue) as Promise<TResponse>,
     documentsList: async <TResponse = DocumentsListResponse>(request: DocumentsListRequest): Promise<TResponse> =>
       facade.documentsList(request as unknown as JsonValue) as Promise<TResponse>,
     documentGet: async <TResponse = DocumentGetResponse>(request: DocumentGetRequest): Promise<TResponse> =>

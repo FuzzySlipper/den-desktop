@@ -149,6 +149,27 @@ public sealed class ChannelsProjectionService
         };
     }
 
+    public async Task<ListChannelMembersResponse> ListChannelMembersAsync(
+        ListChannelMembersRequest request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.ProjectId);
+
+        var settings = await _settingsProvider(cancellationToken).ConfigureAwait(false);
+        var baseUrl = settings.ChannelsBaseUrl;
+
+        var members = await _den.ListChannelMembersAsync(
+            baseUrl,
+            request.ChannelId,
+            cancellationToken).ConfigureAwait(false);
+
+        return new ListChannelMembersResponse
+        {
+            Members = members.Select(ToMemberRow).ToList(),
+        };
+    }
+
     private static ChannelMessageRow ToRow(DenChannelMessage message)
     {
         return new ChannelMessageRow
@@ -174,6 +195,24 @@ public sealed class ChannelsProjectionService
             Sequence = evt.Sequence,
             UpdateVersion = evt.UpdateVersion,
             CreatedAt = evt.CreatedAt,
+        };
+    }
+
+    private static ChannelMemberRow ToMemberRow(DenChannelGatewayMember member)
+    {
+        return new ChannelMemberRow
+        {
+            Id = member.Id,
+            MemberType = member.MemberType,
+            MemberIdentity = member.MemberIdentity,
+            MembershipStatus = member.MembershipStatus,
+            WakePolicy = member.WakePolicy,
+            CanSend = member.CanSend,
+            CanReact = member.CanReact,
+            CanInvite = member.CanInvite,
+            CooldownSeconds = member.CooldownSeconds,
+            MaxAutoRepliesPerWindow = member.MaxAutoRepliesPerWindow,
+            SettingsLabel = member.SettingsLabel,
         };
     }
 }

@@ -81,3 +81,19 @@ public sealed class ListChannelActivityEventsHandler
         return await _projection.ListChannelActivityEventsAsync(request, cancellationToken).ConfigureAwait(false);
     }
 }
+
+public sealed class ListChannelMembersHandler
+    : IBridgeCommandHandler<ListChannelMembersRequest, ListChannelMembersResponse>
+{
+    private readonly ChannelsProjectionService _projection;
+
+    public ListChannelMembersHandler(ChannelsProjectionService projection) => _projection = projection;
+
+    public async ValueTask<ListChannelMembersResponse?> HandleAsync(
+        ListChannelMembersRequest request,
+        BridgeRequestContext context,
+        CancellationToken cancellationToken)
+    {
+        return await _projection.ListChannelMembersAsync(request, cancellationToken).ConfigureAwait(false);
+    }
+}
