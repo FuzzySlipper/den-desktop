@@ -97,3 +97,19 @@ public sealed class ListChannelMembersHandler
         return await _projection.ListChannelMembersAsync(request, cancellationToken).ConfigureAwait(false);
     }
 }
+
+public sealed class UpdateChannelMemberStatusHandler
+    : IBridgeCommandHandler<UpdateChannelMemberStatusRequest, UpdateChannelMemberStatusResponse>
+{
+    private readonly ChannelsProjectionService _projection;
+
+    public UpdateChannelMemberStatusHandler(ChannelsProjectionService projection) => _projection = projection;
+
+    public async ValueTask<UpdateChannelMemberStatusResponse?> HandleAsync(
+        UpdateChannelMemberStatusRequest request,
+        BridgeRequestContext context,
+        CancellationToken cancellationToken)
+    {
+        return await _projection.UpdateChannelMemberStatusAsync(request, cancellationToken).ConfigureAwait(false);
+    }
+}

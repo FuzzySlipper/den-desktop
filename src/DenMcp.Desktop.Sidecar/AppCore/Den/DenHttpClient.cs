@@ -469,6 +469,41 @@ public sealed class DenHttpClient
         }
     }
 
+    public async Task<DenChannelGatewayMember> UpdateChannelMemberStatusAsync(
+        string channelsBaseUrl,
+        long channelId,
+        long membershipId,
+        string membershipStatus,
+        CancellationToken cancellationToken = default)
+    {
+        var url = BuildUrl(
+            channelsBaseUrl,
+            $"/api/channels/{channelId}/memberships/{membershipId}/status",
+            Array.Empty<QueryParameter>());
+        var content = new StringContent(
+            JsonSerializer.Serialize(new { membershipStatus }),
+            Encoding.UTF8,
+            "application/json");
+        var response = await SendAsync(
+            () => new HttpRequestMessage(HttpMethod.Patch, url) { Content = content },
+            "Unable to update Den Channels member status",
+            cancellationToken).ConfigureAwait(false);
+
+        using (response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await ReadBodyAsync(response, cancellationToken).ConfigureAwait(false);
+                throw new DenHttpClientException($"Den Channels member status update returned HTTP {(int)response.StatusCode}: {body}");
+            }
+
+            return await ReadJsonAsync<DenChannelGatewayMember>(
+                response,
+                "Unable to parse Den Channels member status update response",
+                cancellationToken).ConfigureAwait(false);
+        }
+    }
+
     public async Task<IReadOnlyList<DenChannelMessage>> ListChannelMessagesAsync(
         string baseUrl,
         long channelId,

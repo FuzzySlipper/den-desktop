@@ -457,6 +457,16 @@ export interface ListChannelMembersResponse {
   members: ChannelMemberRow[];
 }
 
+export interface UpdateChannelMemberStatusRequest extends Record<string, JsonValue | undefined> {
+  channel_id: number;
+  membership_id: number;
+  membership_status: string;
+}
+
+export interface UpdateChannelMemberStatusResponse {
+  member: ChannelMemberRow;
+}
+
 // ── Documents tab (task #1147) ────────────────────────────────────────────
 
 export interface DocumentsListRequest {
@@ -836,6 +846,8 @@ export function createSidecarBridgeFacade(client: SidecarBridgeClient) {
       facade.listChannelActivityEvents(request as JsonValue) as Promise<TResponse>,
     listChannelMembers: async <TResponse = ListChannelMembersResponse>(request: ListChannelMembersRequest): Promise<TResponse> =>
       facade.listChannelMembers(request as JsonValue) as Promise<TResponse>,
+    updateChannelMemberStatus: async <TResponse = UpdateChannelMemberStatusResponse>(request: UpdateChannelMemberStatusRequest): Promise<TResponse> =>
+      facade.updateChannelMemberStatus(request as JsonValue) as Promise<TResponse>,
     documentsList: async <TResponse = DocumentsListResponse>(request: DocumentsListRequest): Promise<TResponse> =>
       facade.documentsList(request as unknown as JsonValue) as Promise<TResponse>,
     documentGet: async <TResponse = DocumentGetResponse>(request: DocumentGetRequest): Promise<TResponse> =>

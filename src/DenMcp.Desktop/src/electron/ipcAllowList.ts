@@ -26,6 +26,7 @@ export const allowedSidecarCallMethods = Object.freeze([
   'listChannels',
   'listChannelActivityEvents',
   'listChannelMembers',
+  'updateChannelMemberStatus',
   'documentsList',
   'documentGet',
   'documentStore',

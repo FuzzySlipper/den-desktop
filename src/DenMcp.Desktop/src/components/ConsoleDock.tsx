@@ -508,7 +508,7 @@ export function ConsoleDock({
 
               if (item.kind === 'ch-members') {
                 const members = item.data as ChannelMemberRow[];
-                return <ChannelMembers key={item.key} members={members} />;
+                return <ChannelMembers key={item.key} members={members} channelId={channelContext?.activeChannel?.id ?? 0} />;
               }
 
               // Diagnostic line

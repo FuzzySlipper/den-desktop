@@ -170,6 +170,29 @@ public sealed class ChannelsProjectionService
         };
     }
 
+    public async Task<UpdateChannelMemberStatusResponse> UpdateChannelMemberStatusAsync(
+        UpdateChannelMemberStatusRequest request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.MembershipStatus);
+
+        var settings = await _settingsProvider(cancellationToken).ConfigureAwait(false);
+        var baseUrl = settings.ChannelsBaseUrl;
+
+        var member = await _den.UpdateChannelMemberStatusAsync(
+            baseUrl,
+            request.ChannelId,
+            request.MembershipId,
+            request.MembershipStatus,
+            cancellationToken).ConfigureAwait(false);
+
+        return new UpdateChannelMemberStatusResponse
+        {
+            Member = ToMemberRow(member),
+        };
+    }
+
     private static ChannelMessageRow ToRow(DenChannelMessage message)
     {
         return new ChannelMessageRow

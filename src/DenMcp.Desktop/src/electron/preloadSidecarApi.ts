@@ -15,7 +15,7 @@ import type {
 // (Den-post-first), then optionally delivers through this bridge command when
 // running under Electron with a live session target.
 import type { SidecarBridgeClient } from './sidecarProtocol.ts';
-import { createSidecarBridgeFacade, type SidecarHealthResponse, type SidecarCapabilitiesResponse, type ConsoleCommandDefinition, type ConsoleCommandRunRequest, type ConsoleCommandRunResponse, type ConsoleCommandListResponse, type TerminalAckOutputRequest, type TerminalAttachRequest, type TerminalCreateSessionRequest, type TerminalDetachRequest, type TerminalListSessionsRequest, type TerminalReadActivityRequest, type TerminalReconnectRequest, type TerminalResizeRequest, type TerminalResponse, type TerminalEventPayload, type TerminalSendInputRequest, type TerminalTerminateRequest, type AppAgentBuildContextRequest, type AppAgentCancelRequest, type AppAgentInvokeToolRequest, type AppAgentListToolsRequest, type AppAgentResponse, type TasksDashboardSnapshotRequest, type TasksDashboardSnapshot, type TaskUpdateRequest, type TaskUpdateResponse, type MessagesSnapshotRequest, type MessagesSnapshot, type DocumentsListRequest, type DocumentsListResponse, type DocumentGetRequest, type DocumentGetResponse, type DocumentStoreRequest, type DocumentStoreResponse, type ListChannelMessagesRequest, type ListChannelMessagesResponse, type PostChannelMessageRequest, type PostChannelMessageResponse, type EnsureDefaultChannelRequest, type EnsureDefaultChannelResponse, type ListChannelsRequest, type ListChannelsResponse, type ListChannelActivityEventsRequest, type ListChannelActivityEventsResponse, type ListChannelMembersRequest, type ListChannelMembersResponse, type ChannelActivityEventRow, type ChannelSummary, type ChannelMessageRow } from './sidecarProtocol.ts';
+import { createSidecarBridgeFacade, type SidecarHealthResponse, type SidecarCapabilitiesResponse, type ConsoleCommandDefinition, type ConsoleCommandRunRequest, type ConsoleCommandRunResponse, type ConsoleCommandListResponse, type TerminalAckOutputRequest, type TerminalAttachRequest, type TerminalCreateSessionRequest, type TerminalDetachRequest, type TerminalListSessionsRequest, type TerminalReadActivityRequest, type TerminalReconnectRequest, type TerminalResizeRequest, type TerminalResponse, type TerminalEventPayload, type TerminalSendInputRequest, type TerminalTerminateRequest, type AppAgentBuildContextRequest, type AppAgentCancelRequest, type AppAgentInvokeToolRequest, type AppAgentListToolsRequest, type AppAgentResponse, type TasksDashboardSnapshotRequest, type TasksDashboardSnapshot, type TaskUpdateRequest, type TaskUpdateResponse, type MessagesSnapshotRequest, type MessagesSnapshot, type DocumentsListRequest, type DocumentsListResponse, type DocumentGetRequest, type DocumentGetResponse, type DocumentStoreRequest, type DocumentStoreResponse, type ListChannelMessagesRequest, type ListChannelMessagesResponse, type PostChannelMessageRequest, type PostChannelMessageResponse, type EnsureDefaultChannelRequest, type EnsureDefaultChannelResponse, type ListChannelsRequest, type ListChannelsResponse, type ListChannelActivityEventsRequest, type ListChannelActivityEventsResponse, type ListChannelMembersRequest, type ListChannelMembersResponse, type UpdateChannelMemberStatusRequest, type UpdateChannelMemberStatusResponse, type ChannelActivityEventRow, type ChannelSummary, type ChannelMessageRow } from './sidecarProtocol.ts';
 
 export interface ShellAppearanceSettings {
   theme: string;
@@ -64,6 +64,7 @@ export interface DenDesktopSidecarApi {
   listChannels(request: ListChannelsRequest): Promise<ListChannelsResponse>;
   listChannelActivityEvents(request: ListChannelActivityEventsRequest): Promise<ListChannelActivityEventsResponse>;
   listChannelMembers(request: ListChannelMembersRequest): Promise<ListChannelMembersResponse>;
+  updateChannelMemberStatus(request: UpdateChannelMemberStatusRequest): Promise<UpdateChannelMemberStatusResponse>;
   documentsList(request: DocumentsListRequest): Promise<DocumentsListResponse>;
   documentGet(request: DocumentGetRequest): Promise<DocumentGetResponse>;
   documentStore(request: DocumentStoreRequest): Promise<DocumentStoreResponse>;
@@ -141,6 +142,8 @@ export function createDenDesktopSidecarApi(
       facade.listChannelActivityEvents(request),
     listChannelMembers: (request: ListChannelMembersRequest) =>
       facade.listChannelMembers(request),
+    updateChannelMemberStatus: (request: UpdateChannelMemberStatusRequest) =>
+      facade.updateChannelMemberStatus(request),
     terminalCreateSession: (request: TerminalCreateSessionRequest) => facade.terminalCreateSession(request),
     terminalListSessions: (request?: TerminalListSessionsRequest) => facade.terminalListSessions(request ?? {}),
     terminalReadActivity: (request: TerminalReadActivityRequest) => facade.terminalReadActivity(request),

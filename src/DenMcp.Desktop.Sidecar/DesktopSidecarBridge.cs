@@ -154,6 +154,9 @@ public static class DesktopSidecarBridge
             .RegisterCommand<ListChannelMembersRequest, ListChannelMembersResponse, ListChannelMembersHandler>(
                 DesktopSidecarProtocol.ListChannelMembersCommand,
                 config => { config.SupportsCancellation = true; })
+            .RegisterCommand<UpdateChannelMemberStatusRequest, UpdateChannelMemberStatusResponse, UpdateChannelMemberStatusHandler>(
+                DesktopSidecarProtocol.UpdateChannelMemberStatusCommand,
+                config => { config.SupportsCancellation = true; })
             // Documents tab (task #1147)
             .RegisterCommand<DocumentsListRequest, DocumentsListResponse, DocumentsListHandler>(
                 DesktopSidecarProtocol.DocumentsListCommand)
@@ -333,6 +336,8 @@ public static class DesktopSidecarBridge
             // Channel members schemas
             Schema(DesktopSidecarProtocol.ListChannelMembersCommand + ".request", ListChannelMembersRequestSchema),
             Schema(DesktopSidecarProtocol.ListChannelMembersCommand + ".response", ListChannelMembersResponseSchema),
+            Schema(DesktopSidecarProtocol.UpdateChannelMemberStatusCommand + ".request", UpdateChannelMemberStatusRequestSchema),
+            Schema(DesktopSidecarProtocol.UpdateChannelMemberStatusCommand + ".response", UpdateChannelMemberStatusResponseSchema),
             Schema(DesktopSidecarProtocol.DocumentsListCommand + ".request", DocumentsListRequestSchema),
             Schema(DesktopSidecarProtocol.DocumentsListCommand + ".response", DocumentsListResponseSchema),
             Schema(DesktopSidecarProtocol.DocumentGetCommand + ".request", DocumentGetRequestSchema),
@@ -386,6 +391,14 @@ public static class DesktopSidecarBridge
 
     private const string ListChannelMembersResponseSchema = """
         {"type":"object","additionalProperties":false,"required":["members"],"properties":{"members":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","member_type","member_identity","membership_status"],"properties":{"id":{"type":"integer"},"member_type":{"type":"string"},"member_identity":{"type":"string"},"membership_status":{"type":"string"},"wake_policy":{"type":["string","null"]},"can_send":{"type":"boolean"},"can_react":{"type":"boolean"},"can_invite":{"type":"boolean"},"cooldown_seconds":{"type":"integer"},"max_auto_replies_per_window":{"type":"integer"},"settings_label":{"type":["string","null"]}}}}}}
+        """;
+
+    private const string UpdateChannelMemberStatusRequestSchema = """
+        {"type":"object","additionalProperties":false,"required":["channel_id","membership_id","membership_status"],"properties":{"channel_id":{"type":"integer"},"membership_id":{"type":"integer"},"membership_status":{"type":"string"}}}
+        """;
+
+    private const string UpdateChannelMemberStatusResponseSchema = """
+        {"type":"object","additionalProperties":false,"required":["member"],"properties":{"member":{"type":"object","additionalProperties":false,"required":["id","member_type","member_identity","membership_status"],"properties":{"id":{"type":"integer"},"member_type":{"type":"string"},"member_identity":{"type":"string"},"membership_status":{"type":"string"},"wake_policy":{"type":["string","null"]},"can_send":{"type":"boolean"},"can_react":{"type":"boolean"},"can_invite":{"type":"boolean"},"cooldown_seconds":{"type":"integer"},"max_auto_replies_per_window":{"type":"integer"},"settings_label":{"type":["string","null"]}}}}}
         """;
 
     private const string OperatorSettingsSchema = """

@@ -208,3 +208,21 @@ public sealed record ChannelMemberRow
     [JsonPropertyName("settings_label")]
     public string? SettingsLabel { get; init; }
 }
+
+public sealed record UpdateChannelMemberStatusRequest
+{
+    [JsonPropertyName("channel_id")]
+    public long ChannelId { get; init; }
+
+    [JsonPropertyName("membership_id")]
+    public long MembershipId { get; init; }
+
+    [JsonPropertyName("membership_status")]
+    public required string MembershipStatus { get; init; }
+}
+
+public sealed record UpdateChannelMemberStatusResponse
+{
+    [JsonPropertyName("member")]
+    public required ChannelMemberRow Member { get; init; }
+}

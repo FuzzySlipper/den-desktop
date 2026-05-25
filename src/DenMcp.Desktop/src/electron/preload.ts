@@ -143,6 +143,7 @@ contextBridge.exposeInMainWorld('denDesktopSidecar', {
   listChannels: (request: unknown) => callSidecar('listChannels', request),
   listChannelActivityEvents: (request: unknown) => callSidecar('listChannelActivityEvents', request),
   listChannelMembers: (request: unknown) => callSidecar('listChannelMembers', request),
+  updateChannelMemberStatus: (request: unknown) => callSidecar('updateChannelMemberStatus', request),
 
   // Documents tab (task #1147)
   documentsList: (request: unknown) => callSidecar('documentsList', request),
